@@ -98,17 +98,17 @@ class PdfService {
       child: pw.Column(
         children: [
           pw.Text(
-            'DERVIN PHARMACY',
+            'His Grace Drugshop',
             style: _getTextStyle(fontSize: 24, bold: true, color: primaryColor),
           ),
           pw.SizedBox(height: 5),
           pw.Text(
-            'Your Trusted Pharmacy',
+            'Your Trusted Drugshop',
             style: _getTextStyle(fontSize: 12, color: secondaryColor),
           ),
           pw.SizedBox(height: 5),
           pw.Text(
-            'Tel: +256 XXX XXX XXX | Email: info@dervinpharmacy.com',
+            'Tel: +256 750414748/76195333 | Email: info@hisgracedrugshop.com',
             style: _getTextStyle(fontSize: 10, color: secondaryColor),
           ),
           pw.SizedBox(height: 10),
@@ -350,7 +350,7 @@ class PdfService {
                 ],
               ),
               pw.SizedBox(height: 8),
-              pw.Container(width: 250, height: 1, color: PdfColors.grey400), // Fixed: Changed from Divider
+              pw.Container(width: 250, height: 1, color: PdfColors.grey400),
               pw.SizedBox(height: 8),
               pw.Row(
                 children: [
@@ -457,7 +457,7 @@ class PdfService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'Dervin Pharmacy Management System',
+                'His Grace Drugshop Management System',
                 style: _getTextStyle(fontSize: 18, bold: true, color: primaryColor),
               ),
               pw.Text(

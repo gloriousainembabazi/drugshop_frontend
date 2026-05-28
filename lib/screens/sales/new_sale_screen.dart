@@ -417,7 +417,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('✅ Sale completed! Receipt generated.'),
+                content: Text(' Sale completed! Receipt generated.'),
                 backgroundColor: Colors.green,
                 duration: Duration(seconds: 2),
               ),
@@ -429,7 +429,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('✅ Sale completed but PDF generation failed: $e'),
+                content: Text(' Sale completed but PDF generation failed: $e'),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -439,7 +439,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Sale completed successfully'),
+            content: Text(' Sale completed successfully'),
             backgroundColor: Colors.green,
           ),
         );

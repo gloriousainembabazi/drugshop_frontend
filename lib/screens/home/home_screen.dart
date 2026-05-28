@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   List<Medicine> _filteredMedicines = [];
   double _totalCredit = 0;
   double _totalCreditPaid = 0;
+  bool _notificationsViewed = false; // ADD THIS LINE
 
   @override
   void initState() {
@@ -401,6 +402,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                  provider.expiringMedicines.length +
                                  provider.expiredMedicines.length;
               
+              // Only show badge if there are alerts AND user hasn't viewed them
+              final showBadge = totalAlerts > 0 && !_notificationsViewed;
+              
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -408,9 +412,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
-                    onPressed: () => _showNotifications(context),
+                    onPressed: () => _showNotifications(context, totalAlerts),
                   ),
-                  if (totalAlerts > 0)
+                  if (showBadge)
                     Positioned(
                       right: -2,
                       top: -2,
@@ -1678,7 +1682,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  void _showNotifications(BuildContext context) {
+  void _showNotifications(BuildContext context, int totalAlerts) {
+    // Mark notifications as viewed - this will clear the badge
+    setState(() {
+      _notificationsViewed = true;
+    });
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

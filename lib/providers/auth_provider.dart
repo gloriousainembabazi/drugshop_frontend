@@ -66,7 +66,6 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
 
-      // Verification required
       if (response.requiresVerification == true) {
         _verificationEmail = response.email;
         _error = response.error;
@@ -75,7 +74,6 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      // Login failed
       _error = response.error ?? 'Login failed';
 
       _setLoading(false);
@@ -177,12 +175,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // =========================
-  // VERIFY OTP
+  // VERIFY OTP (FIXED)
   // =========================
 
   Future<bool> verifyOtp(
-    String destination,
+    String? email,
     String otp, {
+    String? phone,
     required String otpType,
   }) async {
     _setLoading(true);
@@ -190,8 +189,8 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final response = await _authService.verifyOtp(
-        email: otpType == 'email' ? destination : null,
-        phone: otpType == 'phone' ? destination : null,
+        email: otpType == 'email' ? email : null,
+        phone: otpType == 'phone' ? phone : null,
         otp: otp,
         otpType: otpType,
       );

@@ -117,7 +117,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'DERVIN PHARMACY',
+                                        'His Grace Drudshop',
                                         style: GoogleFonts.poppins(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,

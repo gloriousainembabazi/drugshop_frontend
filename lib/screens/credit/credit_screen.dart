@@ -488,7 +488,7 @@ class _CreditScreenState extends State<CreditScreen> with SingleTickerProviderSt
                         
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('✅ Credit sale created successfully')),
+                            const SnackBar(content: Text(' Credit sale created successfully')),
                           );
                           _cartItems.clear();
                           _notesController.clear();

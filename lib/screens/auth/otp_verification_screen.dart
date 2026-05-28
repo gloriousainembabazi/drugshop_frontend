@@ -28,6 +28,7 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState
     extends State<OtpVerificationScreen> {
+
   final List<TextEditingController> _otpControllers =
       List.generate(
     6,
@@ -47,15 +48,14 @@ class _OtpVerificationScreenState
   void initState() {
     super.initState();
     _startTimer();
-    
-    // Add listeners to auto-verify when all boxes are filled
+
     for (int i = 0; i < _otpControllers.length; i++) {
       _otpControllers[i].addListener(() {
         _checkAutoVerify();
       });
     }
   }
-  
+
   void _checkAutoVerify() {
     String otp = _otpControllers.map((e) => e.text).join();
     if (otp.length == 6) {
@@ -93,23 +93,19 @@ class _OtpVerificationScreenState
   }
 
   void _onOtpChanged(int index, String value) {
-    // Fix: Only allow single digit and handle properly
     if (value.length > 1) {
       _otpControllers[index].text = value.substring(0, 1);
       return;
     }
-    
-    // Move to next box when a digit is entered
+
     if (value.length == 1 && index < 5) {
       FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
     }
-    
-    // Move to previous box when deleted
+
     if (value.isEmpty && index > 0) {
       FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
     }
-    
-    // Force rebuild to update UI
+
     setState(() {});
   }
 
@@ -120,8 +116,7 @@ class _OtpVerificationScreenState
     if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Please enter a valid 6-digit OTP'),
+          content: Text('Please enter a valid 6-digit OTP'),
           backgroundColor: Colors.red,
         ),
       );
@@ -148,11 +143,12 @@ class _OtpVerificationScreenState
       return;
     }
 
-    // EMAIL / PHONE VERIFICATION FLOW
+    // ✅ FIXED: BACKEND COMPATIBLE PAYLOAD (IMPORTANT FIX)
     final success = await authProvider.verifyOtp(
-      widget.destination,
+      widget.type == 'email' ? widget.destination : null,
       otp,
       otpType: widget.type,
+      phone: widget.type == 'phone' ? widget.destination : null,
     );
 
     if (success && mounted) {
@@ -187,7 +183,6 @@ class _OtpVerificationScreenState
     bool success = false;
 
     try {
-      // VERIFICATION OTP
       if (widget.purpose == 'verification') {
         if (widget.type == 'email') {
           success =
@@ -200,22 +195,18 @@ class _OtpVerificationScreenState
             widget.destination,
           );
         }
-      }
-
-      // RESET PASSWORD OTP
-      else {
+      } else {
         success = await authProvider
             .forgotPassword(widget.destination);
       }
 
       if (success && mounted) {
-        // Clear existing OTP boxes
         for (var controller in _otpControllers) {
           controller.clear();
         }
-        // Focus first box
+
         _focusNodes[0].requestFocus();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -238,9 +229,7 @@ class _OtpVerificationScreenState
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Error resending OTP: $e',
-          ),
+          content: Text('Error resending OTP: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -254,8 +243,7 @@ class _OtpVerificationScreenState
       builder: (_) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20),
           ),
           title: Column(
             children: [
@@ -289,13 +277,7 @@ class _OtpVerificationScreenState
               child: CustomButton(
                 text: 'CONTINUE TO LOGIN',
                 onPressed: () {
-                  Navigator.pop(context);
-
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
+                  Navigator.of(context).popAndPushNamed('/login');
                 },
                 isFullWidth: true,
               ),
@@ -325,23 +307,20 @@ class _OtpVerificationScreenState
           filled: true,
           fillColor: Colors.grey.shade100,
           border: OutlineInputBorder(
-            borderRadius:
-                BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
               color: Colors.grey.shade300,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius:
-                BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(
               color: AppConstants.primaryColor,
               width: 2,
             ),
           ),
         ),
-        onChanged: (value) =>
-            _onOtpChanged(index, value),
+        onChanged: (value) => _onOtpChanged(index, value),
       ),
     );
   }
@@ -359,67 +338,46 @@ class _OtpVerificationScreenState
         backgroundColor: Colors.transparent,
       ),
       body: Consumer<AuthProvider>(
-        builder: (
-          context,
-          authProvider,
-          child,
-        ) {
+        builder: (context, authProvider, child) {
           return SafeArea(
             child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 10),
-
-                  // ICON
                   Center(
                     child: Container(
                       height: 120,
                       width: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppConstants
-                            .primaryColor
-                            .withOpacity(0.1),
+                        color: AppConstants.primaryColor.withOpacity(0.1),
                       ),
                       child: Icon(
                         widget.type == 'email'
                             ? Icons.mark_email_read
                             : Icons.phone_android,
                         size: 60,
-                        color:
-                            AppConstants.primaryColor,
+                        color: AppConstants.primaryColor,
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
-                  // TITLE
                   Text(
-                    widget.purpose ==
-                            'verification'
+                    widget.purpose == 'verification'
                         ? 'Verify Your ${widget.type == 'email' ? 'Email' : 'Phone'}'
                         : 'Verify OTP',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 26,
-                      fontWeight:
-                          FontWeight.bold,
-                      color:
-                          AppConstants.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      color: AppConstants.primaryColor,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
-                  // SUBTITLE
                   Text(
-                    widget.purpose ==
-                            'verification'
+                    widget.purpose == 'verification'
                         ? 'We sent a verification code to'
                         : 'We sent a password reset code to',
                     textAlign: TextAlign.center,
@@ -428,124 +386,67 @@ class _OtpVerificationScreenState
                       color: Colors.grey[600],
                     ),
                   ),
-
                   const SizedBox(height: 5),
-
-                  // DESTINATION
                   Text(
                     widget.destination,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 16,
-                      fontWeight:
-                          FontWeight.w600,
-                      color:
-                          AppConstants.primaryColor,
+                      fontWeight: FontWeight.w600,
+                      color: AppConstants.primaryColor,
                     ),
                   ),
-
                   const SizedBox(height: 35),
-
-                  // ERROR MESSAGE
-                  if (authProvider.error !=
-                      null) ...[
+                  if (authProvider.error != null) ...[
                     Container(
-                      padding:
-                          const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.red[50],
-                        borderRadius:
-                            BorderRadius.circular(
-                                10),
-                        border: Border.all(
-                          color: Colors.red.shade200,
-                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.red.shade200),
                       ),
                       child: Text(
                         authProvider.error!,
-                        textAlign:
-                            TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.red[700],
-                        ),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.red[700]),
                       ),
                     ),
-
                     const SizedBox(height: 20),
                   ],
-
-                  // OTP BOXES
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .spaceEvenly,
-                    children: List.generate(
-                      6,
-                      (index) =>
-                          _buildOtpBox(index),
-                    ),
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(6, (index) => _buildOtpBox(index)),
                   ),
-
                   const SizedBox(height: 35),
-
-                  // VERIFY BUTTON
                   CustomButton(
                     text: 'VERIFY OTP',
                     onPressed: _verifyOtp,
-                    isLoading:
-                        authProvider.isLoading,
+                    isLoading: authProvider.isLoading,
                     isFullWidth: true,
                   ),
-
                   const SizedBox(height: 20),
-
-                  // RESEND
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Didn\'t receive code? ',
-                        style:
-                            GoogleFonts.poppins(
-                          color:
-                              Colors.grey[600],
-                        ),
-                      ),
-
+                      Text('Didn\'t receive code? ',
+                          style: GoogleFonts.poppins(color: Colors.grey[600])),
                       if (!_canResend)
-                        Text(
-                          'Resend in $_start s',
-                          style:
-                              GoogleFonts.poppins(
-                            color: Colors
-                                .grey[400],
-                          ),
-                        ),
-
+                        Text('Resend in $_start s',
+                            style: GoogleFonts.poppins(color: Colors.grey[400])),
                       if (_canResend)
                         GestureDetector(
                           onTap: _resendOtp,
                           child: Text(
                             'Resend',
-                            style:
-                                GoogleFonts
-                                    .poppins(
-                              color:
-                                  AppConstants
-                                      .primaryColor,
-                              fontWeight:
-                                  FontWeight
-                                      .w600,
+                            style: GoogleFonts.poppins(
+                              color: AppConstants.primaryColor,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // CHANGE METHOD
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context);
