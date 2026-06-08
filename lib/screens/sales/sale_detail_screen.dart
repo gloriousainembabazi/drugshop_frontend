@@ -57,6 +57,41 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     }
   }
 
+  // Helper method to clean sale ID and remove extra numbers
+  String _getCleanSaleId() {
+    String rawId = _saleGroup!.saleId;
+    
+    // Remove any newline characters and take only the first line
+    if (rawId.contains('\n')) {
+      rawId = rawId.split('\n').first;
+    }
+    
+    // Remove any extra numbers after space
+    if (rawId.contains(' ')) {
+      rawId = rawId.split(' ').first;
+    }
+    
+    // Extract just the SALE-XXX pattern
+    final match = RegExp(r'SALE-\d+').firstMatch(rawId);
+    if (match != null) {
+      return match.group(0)!;
+    }
+    
+    // Clean from garbage
+    if (rawId.contains('FIGHT') || 
+        rawId.contains('COVERED') || 
+        rawId.contains('FIXTELS') ||
+        rawId.contains('INVOICE') ||
+        rawId.contains('ILLIOTT') ||
+        rawId.contains('OVERFORD') ||
+        rawId.contains('PRICE') ||
+        rawId.contains('924250')) {
+      return 'SALE-${_saleGroup!.saleDate.millisecondsSinceEpoch}';
+    }
+    
+    return rawId;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,36 +148,43 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'His Grace Drudshop',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppConstants.primaryColor,
+                                  // FIX: Wrapped in Expanded to stop horizontal layout overflow
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'His Grace Drugshop',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppConstants.primaryColor,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      Text(
-                                        'Sale Receipt',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade600,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Sale Receipt',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: Colors.grey.shade600,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(width: 12), // Keeps space between title and chip
                                   Container(
-                                    padding: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: AppConstants.primaryColor.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      _saleGroup!.saleId,
+                                      _getCleanSaleId(),
                                       style: GoogleFonts.poppins(
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: AppConstants.primaryColor,
                                       ),
@@ -163,20 +205,16 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 'Staff:',
                                 _saleGroup!.staffName,
                               ),
-                              if (_saleGroup!.customerName != null && _saleGroup!.customerName!.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                _buildInfoRow(
-                                  'Customer:',
-                                  _saleGroup!.customerName!,
-                                ),
-                              ],
-                              if (_saleGroup!.paymentMethod != null && _saleGroup!.paymentMethod!.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                _buildInfoRow(
-                                  'Payment:',
-                                  _saleGroup!.paymentMethod!,
-                                ),
-                              ],
+                              const SizedBox(height: 8),
+                              _buildInfoRow(
+                                'Customer:',
+                                _saleGroup!.cleanCustomerName,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildInfoRow(
+                                'Payment:',
+                                _saleGroup!.cleanPaymentMethod,
+                              ),
                               const SizedBox(height: 16),
                               const Divider(),
                               const SizedBox(height: 16),
@@ -357,10 +395,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
+                              
+                              const SizedBox(height: 24),
                             ],
                           ),
                         ),
                       ),
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),

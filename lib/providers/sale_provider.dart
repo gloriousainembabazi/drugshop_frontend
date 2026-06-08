@@ -28,13 +28,95 @@ class SaleProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  // Helper method to clean garbage data from sale ID
+  String _cleanSaleId(String rawId, {DateTime? fallbackDate}) {
+    if (rawId.isEmpty) {
+      return 'SALE-${fallbackDate?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
+    }
+    
+    final garbagePatterns = [
+      'INVOICE', 'OFFERED', 'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'BY',
+      'invoice', 'offered', 'fight', 'covered', 'fixtels', 'pairs', 'by',
+    ];
+    
+    // Check if the entire ID is garbage
+    bool isCompleteGarbage = false;
+    for (var pattern in garbagePatterns) {
+      if (rawId.toUpperCase() == pattern.toUpperCase() || 
+          (rawId.toUpperCase().contains(pattern.toUpperCase()) && rawId.length < 20)) {
+        isCompleteGarbage = true;
+        break;
+      }
+    }
+    
+    if (isCompleteGarbage) {
+      return 'SALE-${fallbackDate?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
+    }
+    
+    String cleanId = rawId;
+    for (var pattern in garbagePatterns) {
+      cleanId = cleanId.replaceAll(RegExp(pattern, caseSensitive: false), '');
+    }
+    cleanId = cleanId.replaceAll(RegExp(r'[^a-zA-Z0-9\-_]'), '');
+    cleanId = cleanId.trim();
+    
+    if (cleanId.isEmpty || cleanId.length < 3) {
+      return 'SALE-${fallbackDate?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
+    }
+    
+    return cleanId;
+  }
+
+  // Helper method to clean customer name
+  String? _cleanCustomerName(String? rawName) {
+    if (rawName == null || rawName.isEmpty) return null;
+    
+    final garbagePatterns = [
+      'INVOICE', 'OFFERED', 'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'BY',
+      'invoice', 'offered', 'fight', 'covered', 'fixtels', 'pairs', 'by',
+    ];
+    
+    String cleanName = rawName;
+    for (var pattern in garbagePatterns) {
+      cleanName = cleanName.replaceAll(RegExp(pattern, caseSensitive: false), '');
+    }
+    cleanName = cleanName.trim();
+    
+    if (cleanName.isEmpty || cleanName.length < 2) {
+      return null;
+    }
+    return cleanName;
+  }
+
+  // Helper method to clean payment method
+  String _cleanPaymentMethod(String? rawMethod) {
+    if (rawMethod == null || rawMethod.isEmpty) return 'Cash';
+    
+    final garbagePatterns = [
+      'INVOICE', 'OFFERED', 'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'BY',
+      'invoice', 'offered', 'fight', 'covered', 'fixtels', 'pairs', 'by',
+    ];
+    
+    String cleanMethod = rawMethod;
+    for (var pattern in garbagePatterns) {
+      cleanMethod = cleanMethod.replaceAll(RegExp(pattern, caseSensitive: false), '');
+    }
+    cleanMethod = cleanMethod.trim();
+    
+    if (cleanMethod.isEmpty || cleanMethod.length < 2) {
+      return 'Cash';
+    }
+    return cleanMethod;
+  }
+
   void _groupSales() {
     final Map<String, List<Sale>> grouped = {};
     for (var sale in _sales) {
-      if (!grouped.containsKey(sale.saleId)) {
-        grouped[sale.saleId] = [];
+      String cleanId = _cleanSaleId(sale.saleId, fallbackDate: sale.saleDate);
+      if (!grouped.containsKey(cleanId)) {
+        grouped[cleanId] = [];
       }
-      grouped[sale.saleId]!.add(sale);
+      grouped[cleanId]!.add(sale);
     }
     
     _saleGroups.clear();
@@ -44,9 +126,9 @@ class SaleProvider extends ChangeNotifier {
         saleId: entry.key,
         items: entry.value,
         saleDate: firstSale.saleDate,
-        customerName: firstSale.customerName,
+        customerName: _cleanCustomerName(firstSale.customerName),
         staffName: firstSale.staffName,
-        paymentMethod: firstSale.paymentMethod,
+        paymentMethod: _cleanPaymentMethod(firstSale.paymentMethod),
       );
     }
   }
@@ -79,7 +161,31 @@ class SaleProvider extends ChangeNotifier {
           _hasMorePages = false;
         }
 
-        final newSales = salesData.map((json) => Sale.fromJson(json)).toList();
+        final newSales = salesData.map((json) {
+          final cleanedJson = Map<String, dynamic>.from(json);
+          
+          // Clean sale_id
+          if (cleanedJson.containsKey('sale_id')) {
+            String rawId = cleanedJson['sale_id'].toString();
+            DateTime saleDate = cleanedJson['sale_date'] != null 
+                ? DateTime.parse(cleanedJson['sale_date']) 
+                : DateTime.now();
+            cleanedJson['sale_id'] = _cleanSaleId(rawId, fallbackDate: saleDate);
+          }
+          
+          // Clean customer_name
+          if (cleanedJson.containsKey('customer_name') && cleanedJson['customer_name'] != null) {
+            cleanedJson['customer_name'] = _cleanCustomerName(cleanedJson['customer_name'].toString());
+          }
+          
+          // Clean payment_method
+          if (cleanedJson.containsKey('payment_method') && cleanedJson['payment_method'] != null) {
+            cleanedJson['payment_method'] = _cleanPaymentMethod(cleanedJson['payment_method'].toString());
+          }
+          
+          return Sale.fromJson(cleanedJson);
+        }).toList();
+        
         _sales.addAll(newSales);
         _groupSales();
 
@@ -109,7 +215,30 @@ class SaleProvider extends ChangeNotifier {
           _dailyTransactions = _parseInt(data['total_transactions']) ?? 0;
 
           final List<dynamic> salesData = data['sales'] is List ? data['sales'] : [];
-          _dailySales = salesData.map((json) => Sale.fromJson(json)).toList();
+          _dailySales = salesData.map((json) {
+            final cleanedJson = Map<String, dynamic>.from(json);
+            
+            // Clean sale_id
+            if (cleanedJson.containsKey('sale_id')) {
+              String rawId = cleanedJson['sale_id'].toString();
+              DateTime saleDate = cleanedJson['sale_date'] != null 
+                  ? DateTime.parse(cleanedJson['sale_date']) 
+                  : DateTime.now();
+              cleanedJson['sale_id'] = _cleanSaleId(rawId, fallbackDate: saleDate);
+            }
+            
+            // Clean customer_name
+            if (cleanedJson.containsKey('customer_name') && cleanedJson['customer_name'] != null) {
+              cleanedJson['customer_name'] = _cleanCustomerName(cleanedJson['customer_name'].toString());
+            }
+            
+            // Clean payment_method
+            if (cleanedJson.containsKey('payment_method') && cleanedJson['payment_method'] != null) {
+              cleanedJson['payment_method'] = _cleanPaymentMethod(cleanedJson['payment_method'].toString());
+            }
+            
+            return Sale.fromJson(cleanedJson);
+          }).toList();
           _groupSales();
 
           notifyListeners();
@@ -125,17 +254,22 @@ class SaleProvider extends ChangeNotifier {
       await loadSales();
     }
     
-    final groupItems = _sales.where((sale) => sale.saleId == saleId).toList();
+    String cleanSearchId = _cleanSaleId(saleId);
+    
+    final groupItems = _sales.where((sale) {
+      String cleanItemId = _cleanSaleId(sale.saleId, fallbackDate: sale.saleDate);
+      return cleanItemId == cleanSearchId;
+    }).toList();
     
     if (groupItems.isNotEmpty) {
       final firstItem = groupItems.first;
       return SaleGroup(
-        saleId: saleId,
+        saleId: cleanSearchId,
         items: groupItems,
         saleDate: firstItem.saleDate,
-        customerName: firstItem.customerName,
+        customerName: _cleanCustomerName(firstItem.customerName),
         staffName: firstItem.staffName,
-        paymentMethod: firstItem.paymentMethod,
+        paymentMethod: _cleanPaymentMethod(firstItem.paymentMethod),
       );
     }
     
@@ -146,7 +280,29 @@ class SaleProvider extends ChangeNotifier {
     try {
       final response = await _apiService.getSale(id);
       if (response['success'] == true) {
-        return Sale.fromJson(response['data']);
+        final json = response['data'];
+        final cleanedJson = Map<String, dynamic>.from(json);
+        
+        // Clean sale_id
+        if (cleanedJson.containsKey('sale_id')) {
+          String rawId = cleanedJson['sale_id'].toString();
+          DateTime saleDate = cleanedJson['sale_date'] != null 
+              ? DateTime.parse(cleanedJson['sale_date']) 
+              : DateTime.now();
+          cleanedJson['sale_id'] = _cleanSaleId(rawId, fallbackDate: saleDate);
+        }
+        
+        // Clean customer_name
+        if (cleanedJson.containsKey('customer_name') && cleanedJson['customer_name'] != null) {
+          cleanedJson['customer_name'] = _cleanCustomerName(cleanedJson['customer_name'].toString());
+        }
+        
+        // Clean payment_method
+        if (cleanedJson.containsKey('payment_method') && cleanedJson['payment_method'] != null) {
+          cleanedJson['payment_method'] = _cleanPaymentMethod(cleanedJson['payment_method'].toString());
+        }
+        
+        return Sale.fromJson(cleanedJson);
       }
       return null;
     } catch (e) {
@@ -203,7 +359,30 @@ class SaleProvider extends ChangeNotifier {
 
       if (response['success'] == true) {
         final List<dynamic> data = response['data'] is List ? response['data'] : [];
-        return data.map((json) => Sale.fromJson(json)).toList();
+        return data.map((json) {
+          final cleanedJson = Map<String, dynamic>.from(json);
+          
+          // Clean sale_id
+          if (cleanedJson.containsKey('sale_id')) {
+            String rawId = cleanedJson['sale_id'].toString();
+            DateTime saleDate = cleanedJson['sale_date'] != null 
+                ? DateTime.parse(cleanedJson['sale_date']) 
+                : DateTime.now();
+            cleanedJson['sale_id'] = _cleanSaleId(rawId, fallbackDate: saleDate);
+          }
+          
+          // Clean customer_name
+          if (cleanedJson.containsKey('customer_name') && cleanedJson['customer_name'] != null) {
+            cleanedJson['customer_name'] = _cleanCustomerName(cleanedJson['customer_name'].toString());
+          }
+          
+          // Clean payment_method
+          if (cleanedJson.containsKey('payment_method') && cleanedJson['payment_method'] != null) {
+            cleanedJson['payment_method'] = _cleanPaymentMethod(cleanedJson['payment_method'].toString());
+          }
+          
+          return Sale.fromJson(cleanedJson);
+        }).toList();
       }
       return [];
     } catch (e) {

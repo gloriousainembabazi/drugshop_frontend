@@ -1,5 +1,3 @@
-// lib/services/auth_service.dart
-
 import '../models/user.dart';
 import '../models/auth_response.dart';
 import 'api_service.dart';
@@ -11,7 +9,7 @@ class AuthService {
   
   AuthService(this._apiService, this._storageService);
 
-  // LOGIN METHOD - handles nested response from ApiService
+  // LOGIN METHOD - handles nested response from ApiService with verbose safety diagnostics
   Future<AuthResponse> login(String email, String password) async {
     try {
       print("🔐 LOGIN ATTEMPT: $email");
@@ -21,39 +19,57 @@ class AuthService {
         password: password,
       );
       
-      print("📦 LOGIN RESPONSE: $response");
+      print("📦 RAW BACKEND RESPONSE MAP: $response");
 
       // Check if the outer response was successful
-      if (response['success'] == true) {
+      if (response != null && response['success'] == true) {
         // The actual data is inside response['data']
         final data = response['data'];
+        print("📦 EXTRACTED INNER DATA PAYLOAD: $data");
         
         if (data is Map<String, dynamic>) {
-          // Check if login was successful in the nested response
-          if (data['success'] == true) {
-            // Extract token and user
-            final String? token = data['token'];
-            final Map<String, dynamic>? userData = data['user'];
+          // Verify a valid auth token key is present in the map block
+          if (data.containsKey('token') && data['token'] != null) {
+            final String token = data['token'].toString(); // Safe stringify conversion
+            final dynamic userData = data['user'];
             
-            if (token != null && token.isNotEmpty) {
+            print("🔑 Token extracted successfully: $token");
+            print("👤 User data block found: $userData");
+            
+            if (token.isNotEmpty) {
               await _storageService.saveToken(token);
+              print("💾 Token saved to storage service successfully.");
             }
             
-            if (userData != null) {
-              // Convert Map to User object before saving
-              final user = User.fromJson(userData);
-              await _storageService.saveUser(user);  // ✅ Pass User object, not Map
-              
-              return AuthResponse(
-                isSuccess: true,
-                user: user,
-                token: token,  // ✅ Now token parameter exists
-              );
+            if (userData != null && userData is Map<String, dynamic>) {
+              try {
+                print("🔄 Attempting to parse User model via User.fromJson...");
+                final user = User.fromJson(userData);
+                
+                print("💾 Attempting to save User object to storage layer...");
+                await _storageService.saveUser(user);  // Pass User object directly
+                
+                print("✅ All parsing succeeded! Returning success state to provider.");
+                return AuthResponse(
+                  isSuccess: true,
+                  user: user,
+                  token: token,
+                );
+              } catch (modelError) {
+                // Catches fields parsing crashes inside lib/models/user.dart
+                print("❌ CRITICAL: Your User.fromJson model initialization crashed!");
+                print("The exact model breakdown error is: $modelError");
+                return AuthResponse(
+                  isSuccess: false,
+                  error: "User model parsing failed: $modelError",
+                );
+              }
             }
           }
           
           // Check for verification requirement
           if (data['requires_verification'] == true) {
+            print("⚠️ Account requires verification flow step.");
             return AuthResponse(
               isSuccess: false,
               error: data['error'] ?? 'Verification required',
@@ -62,7 +78,7 @@ class AuthService {
             );
           }
           
-          // Handle error from nested response
+          // Handle explicit errors inside nested response data payload
           return AuthResponse(
             isSuccess: false,
             error: data['error'] ?? 'Login failed',
@@ -71,20 +87,21 @@ class AuthService {
         
         return AuthResponse(
           isSuccess: false,
-          error: 'Invalid response format',
+          error: 'Invalid response data format layer',
         );
       } else {
-        // Outer response failed (network error, etc.)
+        // Outer response failed (network validation error or invalid credentials structural map)
         return AuthResponse(
           isSuccess: false,
-          error: response['error'] ?? 'Login failed',
+          error: response?['error'] ?? 'Login failed',
         );
       }
     } catch (e) {
-      print("❌ LOGIN ERROR: $e");
+      // Catches top-level framework runtime exceptions, network timeouts, or type conversion faults
+      print("❌ GENERAL LOGIN FUNCTION EXCEPTION: $e");
       return AuthResponse(
         isSuccess: false,
-        error: 'Network error: ${e.toString()}',
+        error: 'System Exception: ${e.toString()}',
       );
     }
   }
@@ -224,7 +241,9 @@ class AuthService {
           }
         }
         
-        return AuthResponse(isSuccess: true);
+        return AuthResponse(
+          isSuccess: true,
+        );
       } else {
         return AuthResponse(
           isSuccess: false,

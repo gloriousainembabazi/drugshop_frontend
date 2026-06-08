@@ -37,11 +37,30 @@ class StorageService {
   Future<void> clearAll() async {
     await _prefs.clear();
   }
+  
   Future<void> saveThemeMode(String themeIndex) async {
-  await _prefs.setString('theme_mode', themeIndex);
-}
+    await _prefs.setString('theme_mode', themeIndex);
+  }
 
-Future<String?> getThemeMode() async {
-  return _prefs.getString('theme_mode');
-}
+  Future<String?> getThemeMode() async {
+    return _prefs.getString('theme_mode');
+  }
+
+  // Language methods
+  Future<void> saveLanguage(String language) async {
+    await _prefs.setString('language', language);
+  }
+
+  Future<String?> getLanguage() async {
+    return _prefs.getString('language');
+  }
+
+  // Auto backup methods
+  Future<void> saveAutoBackup(bool value) async {
+    await _prefs.setBool('auto_backup', value);
+  }
+
+  Future<bool?> getAutoBackup() async {
+    return _prefs.getBool('auto_backup');
+  }
 }

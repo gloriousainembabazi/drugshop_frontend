@@ -1,5 +1,3 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +14,7 @@ import 'providers/prescription_provider.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
+import 'services/translation_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -69,6 +68,12 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
+  // Initialize translation service with saved language
+  final savedLanguage = await storageService.getLanguage();
+  if (savedLanguage != null) {
+    TranslationService().setLanguage(savedLanguage);
+  }
+
   runApp(
     MyApp(
       apiService: apiService,
@@ -110,7 +115,7 @@ class MyApp extends StatelessWidget {
           create: (_) => ReportProvider(apiService),
         ),
         ChangeNotifierProvider(
-          create: (_) => SettingsProvider(storageService),
+          create: (_) => SettingsProvider(storageService, apiService),
         ),
         ChangeNotifierProvider(
           create: (_) => ExpenseProvider(apiService),

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'storage_service.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:typed_data';  
+import 'dart:io';
 
 class ApiService {
   final StorageService _storageService;
@@ -81,6 +82,30 @@ class ApiService {
     }
   }
 
+  // 🌟 Added PATCH support for partial updates expected by Django REST Framework
+  Future<Map<String, dynamic>> patch(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final response = await http.patch(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Token $token',
+        },
+        body: jsonEncode(data),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      return _networkError(e);
+    }
+  }
+
   Future<Map<String, dynamic>> delete(String endpoint) async {
     try {
       final token = await _storageService.getToken();
@@ -101,14 +126,13 @@ class ApiService {
   }
 
   // =====================================================
-  // RESPONSE HANDLER - NOW RETURNS CONSISTENT FORMAT
+  // RESPONSE HANDLER - FIXES DOUBLE NESTING
   // =====================================================
 
   Map<String, dynamic> _handleResponse(http.Response response) {
     print('STATUS CODE: ${response.statusCode}');
     print('RESPONSE BODY: ${response.body}');
 
-    // Handle empty response body
     if (response.body.isEmpty) {
       final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
       return {
@@ -119,10 +143,9 @@ class ApiService {
       };
     }
 
-    // Parse the response body
-    dynamic data;
+    dynamic decodedJson;
     try {
-      data = jsonDecode(response.body);
+      decodedJson = jsonDecode(response.body);
     } catch (e) {
       return {
         'success': false,
@@ -134,44 +157,55 @@ class ApiService {
 
     // Handle successful response (2xx status codes)
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      // If the backend already structures structural response keys ('success' and 'data'),
+      // return it as-is to bypass unwanted local dictionary re-wrapping.
+      if (decodedJson is Map<String, dynamic> && 
+          decodedJson.containsKey('success') && 
+          decodedJson.containsKey('data')) {
+        
+        if (!decodedJson.containsKey('statusCode')) {
+          decodedJson['statusCode'] = response.statusCode;
+        }
+        return decodedJson;
+      }
+
       return {
         'success': true,
-        'data': data,  // Can be List, Map, String, etc.
+        'data': decodedJson,
         'statusCode': response.statusCode,
       };
     }
 
-    // Handle error response
+    // Handle normalization of errors
     String errorMessage = 'Something went wrong';
 
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('detail')) {
-        errorMessage = data['detail'].toString();
-      } else if (data.containsKey('error')) {
-        errorMessage = data['error'].toString();
-      } else if (data.containsKey('message')) {
-        errorMessage = data['message'].toString();
-      } else if (data.containsKey('non_field_errors')) {
-        errorMessage = data['non_field_errors'].toString();
+    if (decodedJson is Map<String, dynamic>) {
+      if (decodedJson.containsKey('detail')) {
+        errorMessage = decodedJson['detail'].toString();
+      } else if (decodedJson.containsKey('error')) {
+        errorMessage = decodedJson['error'].toString();
+      } else if (decodedJson.containsKey('message')) {
+        errorMessage = decodedJson['message'].toString();
+      } else if (decodedJson.containsKey('non_field_errors')) {
+        errorMessage = decodedJson['non_field_errors'].toString();
       } else {
-        // Try to get first error message from Django REST framework
-        final firstKey = data.keys.firstWhere(
-          (k) => data[k] is List && data[k].isNotEmpty,
+        final firstKey = decodedJson.keys.firstWhere(
+          (k) => decodedJson[k] is List && decodedJson[k].isNotEmpty,
           orElse: () => '',
         );
         if (firstKey.isNotEmpty) {
-          errorMessage = '$firstKey: ${data[firstKey][0]}';
+          errorMessage = '$firstKey: ${decodedJson[firstKey][0]}';
         } else {
-          errorMessage = data.toString();
+          errorMessage = decodedJson.toString();
         }
       }
-    } else if (data is String) {
-      errorMessage = data;
+    } else if (decodedJson is String) {
+      errorMessage = decodedJson;
     }
 
     return {
       'success': false,
-      'data': data,  // Include the error data for debugging
+      'data': decodedJson,
       'error': errorMessage,
       'statusCode': response.statusCode,
     };
@@ -211,6 +245,97 @@ class ApiService {
 
   Future<Map<String, dynamic>> getCurrentUser() async {
     return await get('/api/auth/current-user/');
+  }
+
+  // =====================================================
+  // PROFILE MANAGEMENT
+  // =====================================================
+
+  Future<Map<String, dynamic>> updateUsername(String username) async {
+    return await put(
+      '/api/user/update-username/',
+      {'username': username},
+    );
+  }
+
+  Future<Map<String, dynamic>> updateEmail(String email) async {
+    return await put(
+      '/api/user/update-email/',
+      {'email': email},
+    );
+  }
+
+  Future<Map<String, dynamic>> updatePhone(String phone) async {
+    return await put(
+      '/api/user/update-phone/',
+      {'phone': phone},
+    );
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    String? username,
+    String? email,
+    String? phone,
+  }) async {
+    final Map<String, dynamic> data = {};
+    if (username != null) data['username'] = username;
+    if (email != null) data['email'] = email;
+    if (phone != null) data['phone'] = phone;
+    return await put('/api/user/update-profile/', data);
+  }
+
+  Future<Map<String, dynamic>> updateProfilePicture(String imagePath) async {
+    try {
+      final token = await _storageService.getToken();
+      final request = http.MultipartRequest(
+        'POST', 
+        Uri.parse('$baseUrl/api/user/update-profile-picture/')
+      );
+      
+      request.headers['Authorization'] = 'Token $token';
+      request.files.add(await http.MultipartFile.fromPath('profile_picture', imagePath));
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      return _handleResponse(response);
+    } catch (e) {
+      return _networkError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    return await get('/api/user/profile/');
+  }
+
+  Future<Map<String, dynamic>> verifyEmailOTP(String email, String otp) async {
+    return await post(
+      '/api/user/verify-email/',
+      {'email': email, 'otp': otp},
+    );
+  }
+
+  Future<Map<String, dynamic>> resendVerificationCode(String email) async {
+    return await post(
+      '/api/user/resend-verification/',
+      {'email': email},
+    );
+  }
+
+  // =====================================================
+  // LANGUAGE PREFERENCES - FIXING FOR DRF 405 ROUTING
+  // =====================================================
+
+  Future<Map<String, dynamic>> updateUserLanguage(String language) async {
+    // 🌟 ROUTING FIX: Changed to use patch() method to correctly communicate partial adjustments
+    return await patch(
+      '/api/user/language/',
+      {'language': language},
+    );
+  }
+
+  Future<Map<String, dynamic>> getUserLanguage() async {
+    return await get('/api/user/language/');
   }
 
   // =====================================================
@@ -320,39 +445,39 @@ class ApiService {
       '/api/reports/sales/?start=$startDate&end=$endDate',
     );
   }
+  
   Future<Map<String, dynamic>> getSaleItems(String saleId) async {
-  try {
-    final token = await _storageService.getToken();
-    
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/sales/items/$saleId/'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null && token.isNotEmpty)
-          'Authorization': 'Token $token',
-      },
-    );
-    
-    if (response.statusCode == 200) {
-      return {
-        'success': true,
-        'data': jsonDecode(response.body),
-      };
-    } else {
+    try {
+      final token = await _storageService.getToken();
+      
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/sales/items/$saleId/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Token $token',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'data': jsonDecode(response.body),
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to get sale items: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('Get Sale Items Error: $e');
       return {
         'success': false,
-        'error': 'Failed to get sale items: ${response.statusCode}',
+        'error': 'Failed to get sale items: $e',
       };
     }
-  } catch (e) {
-    print('Get Sale Items Error: $e');
-    return {
-      'success': false,
-      'error': 'Failed to get sale items: $e',
-    };
   }
-}
-  
 
   // =====================================================
   // REPORTS
@@ -428,20 +553,20 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> createCreditSale(
-  Map<String, dynamic> data,
-) async {
-  // 🔍 DEBUG: Log the request
-  print('📤 API SERVICE - SENDING TO /api/credit/sales/');
-  print('📤 REQUEST BODY: $data');
-  print('📤 TOTAL_AMOUNT: ${data['total_amount']}');
+    Map<String, dynamic> data,
+  ) async {
+    print('📤 API SERVICE - SENDING TO /api/credit/sales/');
+    print('📤 REQUEST BODY: $data');
+    print('📤 TOTAL_AMOUNT: ${data['total_amount']}');
+    
+    final response = await post('/api/credit/sales/', data);
+    
+    print('📥 API SERVICE - RESPONSE STATUS: ${response['statusCode']}');
+    print('📥 API SERVICE - RESPONSE BODY: ${response['data']}');
+    
+    return response;
+  }
   
-  final response = await post('/api/credit/sales/', data);
-  
-  print('📥 API SERVICE - RESPONSE STATUS: ${response['statusCode']}');
-  print('📥 API SERVICE - RESPONSE BODY: ${response['data']}');
-  
-  return response;
-}
   // =====================================================
   // PRESCRIPTIONS
   // =====================================================
@@ -455,71 +580,66 @@ class ApiService {
   ) async {
     return await post('/api/prescriptions/', data);
   }
-  // In api_service.dart - add this method:
 
-Future<Map<String, dynamic>> postFile(String endpoint, String filePath) async {
-  try {
-    final token = await _storageService.getToken();
-    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
-    
-    request.headers['Authorization'] = 'Token $token';
-    request.files.add(await http.MultipartFile.fromPath('image', filePath));
-    
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-    
-    return _handleResponse(response);
-  } catch (e) {
-    return _networkError(e);
+  Future<Map<String, dynamic>> postFile(String endpoint, String filePath) async {
+    try {
+      final token = await _storageService.getToken();
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
+      
+      request.headers['Authorization'] = 'Token $token';
+      request.files.add(await http.MultipartFile.fromPath('image', filePath));
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      return _handleResponse(response);
+    } catch (e) {
+      return _networkError(e);
+    }
   }
-}
 
-
-Future<Map<String, dynamic>> postWithImage(
-  String endpoint, 
-  Map<String, dynamic> data, 
-  Uint8List imageBytes,
-  String imageFieldName
-) async {
-  try {
-    final token = await _storageService.getToken();
-    
-    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
-    
-    // Add headers
-    request.headers['Authorization'] = 'Token $token';
-    
-    // Add text fields
-    data.forEach((key, value) {
-      if (value != null) {
-        if (key == 'items') {
-          request.fields[key] = jsonEncode(value);
-        } else {
-          request.fields[key] = value.toString();
+  Future<Map<String, dynamic>> postWithImage(
+    String endpoint, 
+    Map<String, dynamic> data, 
+    Uint8List imageBytes,
+    String imageFieldName
+  ) async {
+    try {
+      final token = await _storageService.getToken();
+      
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
+      
+      request.headers['Authorization'] = 'Token $token';
+      
+      data.forEach((key, value) {
+        if (value != null) {
+          if (key == 'items') {
+            request.fields[key] = jsonEncode(value);
+          } else {
+            request.fields[key] = value.toString();
+          }
         }
-      }
-    });
-    
-    // Add image file
-    request.files.add(http.MultipartFile.fromBytes(
-      imageFieldName,
-      imageBytes,
-      filename: 'prescription_${DateTime.now().millisecondsSinceEpoch}.jpg',
-      contentType: MediaType('image', 'jpeg'),
-    ));
-    
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-    
-    print('📸 IMAGE UPLOAD RESPONSE: ${response.statusCode}');
-    print('📸 IMAGE UPLOAD BODY: ${response.body}');
-    
-    return _handleResponse(response);
-  } catch (e) {
-    print('📸 IMAGE UPLOAD ERROR: $e');
-    return _networkError(e);
+      });
+      
+      request.files.add(http.MultipartFile.fromBytes(
+        imageFieldName,
+        imageBytes,
+        filename: 'prescription_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      ));
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('📸 IMAGE UPLOAD RESPONSE: ${response.statusCode}');
+      print('📸 IMAGE UPLOAD BODY: ${response.body}');
+      
+      return _handleResponse(response);
+    } catch (e) {
+      print('📸 IMAGE UPLOAD ERROR: $e');
+      return _networkError(e);
+    }
   }
-}
 
   // =====================================================
   // STOCK
@@ -542,6 +662,15 @@ Future<Map<String, dynamic>> postWithImage(
     return await post(
       '/api/stock/counts/$id/submit/',
       data,
+    );
+  }
+  Future<Map<String, dynamic>> updatePassword(String oldPassword, String newPassword) async {
+    return await put(
+      '/api/user/update-password/',
+      {
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      },
     );
   }
 }

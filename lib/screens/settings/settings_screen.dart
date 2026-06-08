@@ -7,6 +7,7 @@ import '../../providers/settings_provider.dart';
 import '../../models/theme_model.dart';
 import '../../widgets/custom_button.dart';
 import '../../utils/constants.dart';
+import '../../services/translation_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +17,10 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  String _t(String key) {
+    return TranslationService().translate(key);
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -24,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(_t('Settings')),
       ),
       body: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
@@ -32,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               // Profile Section - Visible to all users
-              _buildSectionHeader('Profile'),
+              _buildSectionHeader(_t('Profile')),
               Card(
                 child: ListTile(
                   leading: CircleAvatar(
@@ -63,15 +68,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
 
               // Account Settings - Visible to all users (self-management)
-              _buildSectionHeader('Account Settings'),
+              _buildSectionHeader(_t('Account Settings')),
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: Text(
-                  'Change Username',
+                  _t('Change Username'),
                   style: GoogleFonts.poppins(),
                 ),
                 subtitle: Text(
-                  'Current: ${user?.username}',
+                  '${_t('Current')}: ${user?.username}',
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -82,11 +87,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.email_outlined),
                 title: Text(
-                  'Change Email',
+                  _t('Change Email'),
                   style: GoogleFonts.poppins(),
                 ),
                 subtitle: Text(
-                  'Current: ${user?.email}',
+                  '${_t('Current')}: ${user?.email}',
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -97,13 +102,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.phone_outlined),
                 title: Text(
-                  'Change Phone',
+                  _t('Change Phone'),
                   style: GoogleFonts.poppins(),
                 ),
                 subtitle: Text(
                   user?.phone?.isNotEmpty == true 
-                      ? 'Current: ${user?.phone}' 
-                      : 'Not set',
+                      ? '${_t('Current')}: ${user?.phone}' 
+                      : _t('Not set'),
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -114,7 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.lock_outline),
                 title: Text(
-                  'Change Password',
+                  _t('Change Password'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -127,18 +132,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // Staff Management - Admin Only
               if (isAdmin) ...[
-                _buildSectionHeader('Staff Management'),
+                _buildSectionHeader(_t('Staff Management')),
                 ListTile(
                   leading: const Icon(Icons.people_outline, color: AppColors.primaryGreen),
                   title: Text(
-                    'Manage Staff',
+                    _t('Manage Staff'),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryGreen,
                     ),
                   ),
                   subtitle: Text(
-                    'Add, edit, or remove staff members',
+                    _t('Add, edit, or remove staff members'),
                     style: GoogleFonts.poppins(fontSize: 12),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -150,17 +155,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
 
               // Appearance Section
-              _buildSectionHeader('Appearance'),
+              _buildSectionHeader(_t('Appearance')),
               _buildThemeSelector(settingsProvider),
 
               const SizedBox(height: 16),
 
               // Language Section
-              _buildSectionHeader('Language & Region'),
+              _buildSectionHeader(_t('Language & Region')),
               ListTile(
                 leading: const Icon(Icons.language),
                 title: Text(
-                  'Language',
+                  _t('Language'),
                   style: GoogleFonts.poppins(),
                 ),
                 subtitle: Text(
@@ -176,10 +181,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
 
               // Data & Backup
-              _buildSectionHeader('Data & Backup'),
+              _buildSectionHeader(_t('Data & Backup')),
               _buildSwitchTile(
-                'Auto Backup',
-                'Automatically backup your data',
+                _t('Auto Backup'),
+                _t('Automatically backup your data'),
                 Icons.backup_outlined,
                 settingsProvider.autoBackup,
                 settingsProvider.toggleAutoBackup,
@@ -187,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.backup),
                 title: Text(
-                  'Backup Now',
+                  _t('Backup Now'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -198,7 +203,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.restore),
                 title: Text(
-                  'Restore Data',
+                  _t('Restore Data'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -210,11 +215,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
 
               // About Section with Complete Details
-              _buildSectionHeader('About'),
+              _buildSectionHeader(_t('About')),
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: Text(
-                  'App Version',
+                  _t('App Version'),
                   style: GoogleFonts.poppins(),
                 ),
                 subtitle: const Text('1.0.0 (Build 2024.03.11)'),
@@ -226,7 +231,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.description_outlined),
                 title: Text(
-                  'Terms of Service',
+                  _t('Terms of Service'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -237,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.privacy_tip_outlined),
                 title: Text(
-                  'Privacy Policy',
+                  _t('Privacy Policy'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -248,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.security),
                 title: Text(
-                  'Security & Compliance',
+                  _t('Security & Compliance'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -259,7 +264,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.support_agent),
                 title: Text(
-                  'Support & Help',
+                  _t('Support & Help'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -270,7 +275,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: const Icon(Icons.code),
                 title: Text(
-                  'Open Source Licenses',
+                  _t('Open Source Licenses'),
                   style: GoogleFonts.poppins(),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -283,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // Logout Button
               CustomButton(
-                text: 'LOGOUT',
+                text: _t('LOGOUT'),
                 onPressed: () async {
                   final confirm = await _showLogoutDialog(context);
                   if (confirm) {
@@ -352,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       leading: Icon(theme.icon),
       title: Text(
-        theme.displayName,
+        _t(theme.displayName),
         style: GoogleFonts.poppins(),
       ),
       trailing: isSelected
@@ -396,20 +401,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Username'),
+        title: Text(_t('Change Username')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'New Username',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: _t('New Username'),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              'Username must be unique and at least 3 characters',
+              _t('Username must be unique and at least 3 characters'),
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
             ),
           ],
@@ -417,20 +422,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
+            child: Text(_t('CANCEL')),
           ),
           TextButton(
             onPressed: () {
-              // Implement username change
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Username updated successfully'),
+                SnackBar(
+                  content: Text(_t('Username updated successfully')),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: const Text('UPDATE'),
+            child: Text(_t('UPDATE')),
           ),
         ],
       ),
@@ -443,21 +447,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Email'),
+        title: Text(_t('Change Email')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'New Email',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: _t('New Email'),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
             Text(
-              'A verification email will be sent to your new address',
+              _t('A verification email will be sent to your new address'),
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
             ),
           ],
@@ -465,20 +469,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
+            child: Text(_t('CANCEL')),
           ),
           TextButton(
             onPressed: () {
-              // Implement email change
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Verification email sent'),
+                SnackBar(
+                  content: Text(_t('Verification email sent')),
                   backgroundColor: Colors.blue,
                 ),
               );
             },
-            child: const Text('SEND VERIFICATION'),
+            child: Text(_t('SEND VERIFICATION')),
           ),
         ],
       ),
@@ -491,15 +494,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Phone Number'),
+        title: Text(_t('Change Phone Number')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'New Phone Number',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: _t('New Phone Number'),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
             ),
@@ -508,20 +511,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
+            child: Text(_t('CANCEL')),
           ),
           TextButton(
             onPressed: () {
-              // Implement phone change
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Phone number updated successfully'),
+                SnackBar(
+                  content: Text(_t('Phone number updated successfully')),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: const Text('UPDATE'),
+            child: Text(_t('UPDATE')),
           ),
         ],
       ),
@@ -532,23 +534,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('App Version'),
+        title: Text(_t('App Version')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow('Version', '1.0.0'),
-            _buildInfoRow('Build', '2024.03.11'),
-            _buildInfoRow('Flutter', '3.16.0'),
-            _buildInfoRow('Dart', '3.2.0'),
+            _buildInfoRow(_t('Version'), '1.0.0'),
+            _buildInfoRow(_t('Build'), '2024.03.11'),
+            _buildInfoRow(_t('Flutter'), '3.16.0'),
+            _buildInfoRow(_t('Dart'), '3.2.0'),
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'Release Date: March 11, 2024',
+              _t('Release Date: March 11, 2024'),
               style: GoogleFonts.poppins(fontSize: 12),
             ),
             Text(
-              'Compatibility: Android 5.0+ / iOS 12.0+',
+              _t('Compatibility: Android 5.0+ / iOS 12.0+'),
               style: GoogleFonts.poppins(fontSize: 12),
             ),
           ],
@@ -556,20 +558,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CLOSE'),
+            child: Text(_t('CLOSE')),
           ),
           TextButton(
             onPressed: () {
-              // Check for updates
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('You have the latest version'),
+                SnackBar(
+                  content: Text(_t('You have the latest version')),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: const Text('CHECK UPDATES'),
+            child: Text(_t('CHECK UPDATES')),
           ),
         ],
       ),
@@ -580,7 +581,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Terms of Service'),
+        title: Text(_t('Terms of Service')),
         content: SizedBox(
           width: double.maxFinite,
           height: 400,
@@ -673,13 +674,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CLOSE'),
+            child: Text(_t('CLOSE')),
           ),
           TextButton(
             onPressed: () {
               _launchUrl('https://www.HisGraceDrugshop.com/terms');
             },
-            child: const Text('VIEW ONLINE'),
+            child: Text(_t('VIEW ONLINE')),
           ),
         ],
       ),
@@ -690,7 +691,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Privacy Policy'),
+        title: Text(_t('Privacy Policy')),
         content: SizedBox(
           width: double.maxFinite,
           height: 400,
@@ -783,13 +784,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CLOSE'),
+            child: Text(_t('CLOSE')),
           ),
           TextButton(
             onPressed: () {
               _launchUrl('https://www.HisGraceDrugshop.com/privacy');
             },
-            child: const Text('VIEW ONLINE'),
+            child: Text(_t('VIEW ONLINE')),
           ),
         ],
       ),
@@ -800,19 +801,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Security & Compliance'),
+        title: Text(_t('Security & Compliance')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow('Encryption', 'AES-256'),
-            _buildInfoRow('Authentication', 'Token-based'),
-            _buildInfoRow('Session Timeout', '30 minutes'),
-            _buildInfoRow('Password Policy', 'Minimum 8 characters'),
+            _buildInfoRow(_t('Encryption'), 'AES-256'),
+            _buildInfoRow(_t('Authentication'), 'Token-based'),
+            _buildInfoRow(_t('Session Timeout'), '30 minutes'),
+            _buildInfoRow(_t('Password Policy'), 'Minimum 8 characters'),
             const Divider(),
             const SizedBox(height: 8),
             Text(
-              'Compliance Standards:',
+              _t('Compliance Standards:'),
               style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
@@ -824,7 +825,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CLOSE'),
+            child: Text(_t('CLOSE')),
           ),
         ],
       ),
@@ -835,14 +836,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Support & Help'),
+        title: Text(_t('Support & Help')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
               leading: const Icon(Icons.email, color: AppColors.primaryGreen),
-              title: const Text('Email Support'),
+              title: Text(_t('Email Support')),
               subtitle: const Text('support@HisGraceDrugshop.com'),
               onTap: () {
                 _launchUrl('mailto:support@HisGraceDrugshop.com');
@@ -850,7 +851,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.phone, color: AppColors.primaryGreen),
-              title: const Text('Phone Support'),
+              title: Text(_t('Phone Support')),
               subtitle: const Text('+256 700 123 456'),
               onTap: () {
                 _launchUrl('tel:+256700123456');
@@ -858,16 +859,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.chat, color: AppColors.primaryGreen),
-              title: const Text('Live Chat'),
-              subtitle: const Text('Available 9am-5pm'),
+              title: Text(_t('Live Chat')),
+              subtitle: Text(_t('Available 9am-5pm')),
               onTap: () {
                 _launchUrl('https://www.HisGraceDrugshop.com/chat');
               },
             ),
             ListTile(
               leading: const Icon(Icons.help, color: AppColors.primaryGreen),
-              title: const Text('FAQ'),
-              subtitle: const Text('Frequently asked questions'),
+              title: Text(_t('FAQ')),
+              subtitle: Text(_t('Frequently asked questions')),
               onTap: () {
                 _launchUrl('https://www.HisGraceDrugshop.com/faq');
               },
@@ -877,7 +878,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CLOSE'),
+            child: Text(_t('CLOSE')),
           ),
         ],
       ),
@@ -888,7 +889,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Open Source Licenses'),
+        title: Text(_t('Open Source Licenses')),
         content: SizedBox(
           width: double.maxFinite,
           height: 300,
@@ -906,7 +907,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CLOSE'),
+            child: Text(_t('CLOSE')),
           ),
         ],
       ),
@@ -952,7 +953,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Language'),
+        title: Text(_t('Select Language')),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -967,7 +968,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   provider.setLanguage(language);
+                  TranslationService().setLanguage(language);
                   Navigator.pop(context);
+                  setState(() {});
                 },
               );
             },
@@ -981,25 +984,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Backup Data'),
-        content: const Text('Create a backup of all your pharmacy data?'),
+        title: Text(_t('Backup Data')),
+        content: Text(_t('Create a backup of all your pharmacy data?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
+            child: Text(_t('CANCEL')),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Backup started...'),
+                SnackBar(
+                  content: Text(_t('Backup started...')),
                   backgroundColor: Colors.green,
                 ),
               );
               // Implement actual backup logic
             },
-            child: const Text('BACKUP'),
+            child: Text(_t('BACKUP')),
           ),
         ],
       ),
@@ -1010,25 +1013,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Restore Data'),
-        content: const Text('Restore data from backup? This will overwrite current data.'),
+        title: Text(_t('Restore Data')),
+        content: Text(_t('Restore data from backup? This will overwrite current data.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
+            child: Text(_t('CANCEL')),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Restore started...'),
+                SnackBar(
+                  content: Text(_t('Restore started...')),
                   backgroundColor: Colors.orange,
                 ),
               );
               // Implement actual restore logic
             },
-            child: const Text('RESTORE'),
+            child: Text(_t('RESTORE')),
           ),
         ],
       ),
@@ -1039,19 +1042,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Are you sure you want to logout?'),
+            title: Text(_t('Logout')),
+            content: Text(_t('Are you sure you want to logout?')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('CANCEL'),
+                child: Text(_t('CANCEL')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.red,
                 ),
-                child: const Text('LOGOUT'),
+                child: Text(_t('LOGOUT')),
               ),
             ],
           ),

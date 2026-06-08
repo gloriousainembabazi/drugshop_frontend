@@ -1,15 +1,17 @@
-// lib/screens/reports/sales_report_screen.dart - Safe version with null checks
+// lib/screens/reports/sales_report_screen.dart - Full corrected code
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/sale_provider.dart';
 import '../../providers/credit_provider.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../utils/constants.dart';
 
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
@@ -66,7 +68,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       final saleProvider = Provider.of<SaleProvider>(context, listen: false);
       final creditProvider = Provider.of<CreditProvider>(context, listen: false);
 
-      // Load data
       await Future.wait([
         saleProvider.loadSales(refresh: true),
         creditProvider.loadCreditSales(),
@@ -75,7 +76,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       final startDateTime = _startOfDay(_startDate);
       final endDateTime = _endOfDay(_endDate);
       
-      // Get all sales
       final allSales = saleProvider.sales;
       final filteredSales = allSales.where((s) {
         final saleDate = s.saleDate;
@@ -83,16 +83,13 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                saleDate.isBefore(endDateTime.add(const Duration(seconds: 1)));
       }).toList();
 
-      // Get all credit sales
       final allCreditSales = creditProvider.creditSales;
       
-      // Filter credit sales by creation date
       final filteredCreditSales = allCreditSales.where((credit) {
         return credit.createdAt.isAfter(startDateTime.subtract(const Duration(seconds: 1))) &&
                credit.createdAt.isBefore(endDateTime.add(const Duration(seconds: 1)));
       }).toList();
 
-      // Calculate totals
       double cashTotal = 0;
       for (var sale in filteredSales) {
         cashTotal += sale.totalPrice;
@@ -101,14 +98,12 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       double creditTotal = 0;
       double creditCollected = 0;
       
-      // Build credit sales history with all items
       List<Map<String, dynamic>> creditHistory = [];
       
       for (var credit in filteredCreditSales) {
         creditTotal += credit.totalAmount;
         creditCollected += credit.amountPaid;
         
-        // Safely iterate through items
         final items = credit.items;
         if (items.isNotEmpty) {
           for (var item in items) {
@@ -128,7 +123,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             });
           }
         } else {
-          // Fallback for old credit sales without items
           creditHistory.add({
             'sale_date': credit.createdAt,
             'due_date': credit.dueDate,
@@ -146,7 +140,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         }
       }
       
-      // Build cash sales history
       List<Map<String, dynamic>> cashHistory = filteredSales.map((s) => {
         'sale_date': s.saleDate,
         'customer_name': s.customerName ?? 'Walk-in',
@@ -177,20 +170,321 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     }
   }
 
-  Future<void> _downloadPDF() async {
-    final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-    final report = reportProvider.salesReport;
+  // ============================================================
+  // PDF DOWNLOAD METHOD
+  // ============================================================
 
-    if (report != null) {
-      final content = PdfService.buildSalesReportContent(report, _cashSalesHistory);
-      await PdfService.generateAndDownload('Sales Report', content);
+  Future<void> _downloadPDF() async {
+    print('🟢 DOWNLOAD PDF BUTTON TAPPED');
+    
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generating PDF... Please wait')),
+      );
+      
+      final totalRevenue = _totalCashSales + _totalCreditSales;
+      final totalTransactions = _cashSalesHistory.length + _creditSalesHistory.length;
+      final averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+      final maxTransaction = _cashSalesHistory.isNotEmpty 
+          ? _cashSalesHistory.map((s) => s['total_price'] ?? 0.0).reduce((a, b) => a > b ? a : b)
+          : 0.0;
+      
+      final reportData = {
+        'summary': {
+          'total_revenue': totalRevenue,
+          'total_transactions': totalTransactions,
+          'average_transaction': averageTransaction,
+          'max_transaction': maxTransaction,
+        },
+        'period': {
+          'start_date': DateFormat('yyyy-MM-dd').format(_startDate),
+          'end_date': DateFormat('yyyy-MM-dd').format(_endDate),
+        }
+      };
+      
+      final salesForPdf = _cashSalesHistory.map((sale) => {
+        'sale_date': sale['sale_date'],
+        'customer_name': sale['customer_name'],
+        'medicine_name': sale['medicine_name'],
+        'quantity': sale['quantity'],
+        'total_price': sale['total_price'],
+      }).toList();
+      
+      final pdf = pw.Document();
+      
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          orientation: pw.PageOrientation.portrait,
+          margin: const pw.EdgeInsets.all(30),
+          header: (pw.Context context) => _buildPdfHeader(),
+          footer: (pw.Context context) => _buildPdfFooter(context),
+          build: (pw.Context context) => [_buildPdfContent(reportData, salesForPdf)],
+        ),
+      );
+      
+      final bytes = await pdf.save();
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'sales_report_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
+      );
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sales report downloaded successfully')),
         );
       }
+    } catch (e, stackTrace) {
+      print('❌ ERROR in _downloadPDF: $e');
+      print('📚 Stack trace: $stackTrace');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download PDF: $e')),
+        );
+      }
     }
+  }
+
+  pw.Widget _buildPdfHeader() {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 20),
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(
+          bottom: pw.BorderSide(color: PdfColors.green700, width: 2),
+        ),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'His Grace Drugshop',
+            style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.green700),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'Sales Report',
+            style: pw.TextStyle(fontSize: 14, color: PdfColors.grey600),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'Period: ${DateFormat('yyyy-MM-dd').format(_startDate)} - ${DateFormat('yyyy-MM-dd').format(_endDate)}',
+            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
+          ),
+          pw.Text(
+            'Generated on: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}',
+            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfFooter(pw.Context context) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 20),
+      padding: const pw.EdgeInsets.all(10),
+      child: pw.Text(
+        'Page ${context.pageNumber}',
+        style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfContent(Map<String, dynamic> report, List<dynamic> salesData) {
+    final summary = report['summary'] ?? {};
+    final limitedSales = salesData.length > 50 ? salesData.sublist(0, 50) : salesData;
+    
+    final List<List<String>> salesRows = [];
+    for (var sale in limitedSales) {
+      DateTime? saleDate = sale['sale_date'];
+      String formattedDate = '';
+      if (saleDate != null) {
+        formattedDate = DateFormat('yyyy-MM-dd').format(saleDate);
+      } else {
+        formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      }
+      
+      salesRows.add([
+        formattedDate,
+        sale['customer_name']?.toString() ?? 'Walk-in',
+        sale['medicine_name']?.toString() ?? '',
+        '${sale['quantity'] ?? 0}',
+        'UGX ${(sale['total_price'] ?? 0.0).toStringAsFixed(0)}',
+      ]);
+    }
+    
+    final outstandingCredit = _totalCreditSales - _totalCreditCollected;
+    
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 20),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              _buildPdfSummaryBox('Total Revenue', 'UGX ${(summary['total_revenue'] ?? 0).toStringAsFixed(0)}', PdfColors.green700),
+              _buildPdfSummaryBox('Transactions', '${summary['total_transactions'] ?? 0}', PdfColors.blue700),
+              _buildPdfSummaryBox('Average', 'UGX ${(summary['average_transaction'] ?? 0).toStringAsFixed(0)}', PdfColors.orange700),
+              _buildPdfSummaryBox('Max Sale', 'UGX ${(summary['max_transaction'] ?? 0).toStringAsFixed(0)}', PdfColors.purple700),
+            ],
+          ),
+        ),
+        
+        pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 20),
+          padding: const pw.EdgeInsets.all(10),
+          decoration: pw.BoxDecoration(
+            color: PdfColors.grey100,
+            borderRadius: pw.BorderRadius.circular(5),
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+            children: [
+              pw.Column(
+                children: [
+                  pw.Text('Cash Sales', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                  pw.Text('UGX ${_totalCashSales.toStringAsFixed(0)}', 
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.green700)),
+                ],
+              ),
+              pw.Container(width: 1, height: 30, color: PdfColors.grey300),
+              pw.Column(
+                children: [
+                  pw.Text('Credit Sales', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                  pw.Text('UGX ${_totalCreditSales.toStringAsFixed(0)}', 
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.orange700)),
+                ],
+              ),
+              pw.Container(width: 1, height: 30, color: PdfColors.grey300),
+              pw.Column(
+                children: [
+                  pw.Text('Credit Collected', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                  pw.Text('UGX ${_totalCreditCollected.toStringAsFixed(0)}', 
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
+                ],
+              ),
+              pw.Container(width: 1, height: 30, color: PdfColors.grey300),
+              pw.Column(
+                children: [
+                  pw.Text('Outstanding', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                  pw.Text('UGX ${outstandingCredit.toStringAsFixed(0)}', 
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        
+        pw.SizedBox(height: 20),
+        
+        pw.Text('Cash Sales Transactions', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 10),
+        
+        _buildPdfTable(
+          headers: ['Date', 'Customer', 'Medicine', 'Qty', 'Total'],
+          rows: salesRows,
+        ),
+        
+        if (salesData.length > 50)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 10),
+            child: pw.Text(
+              'Note: Showing last 50 transactions only',
+              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+            ),
+          ),
+        
+        if (_creditSalesHistory.isNotEmpty) ...[
+          pw.SizedBox(height: 30),
+          pw.Text('Credit Sales Summary', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          pw.Text('Total Credit Invoices: ${_creditSalesHistory.map((c) => c['credit_id']).toSet().length}',
+              style: pw.TextStyle(fontSize: 11)),
+          pw.Text('Total Credit Amount: UGX ${_totalCreditSales.toStringAsFixed(0)}',
+              style: pw.TextStyle(fontSize: 11)),
+          pw.Text('Total Collected: UGX ${_totalCreditCollected.toStringAsFixed(0)}',
+              style: pw.TextStyle(fontSize: 11)),
+          pw.Text('Outstanding Balance: UGX ${(_totalCreditSales - _totalCreditCollected).toStringAsFixed(0)}',
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
+        ],
+        
+        pw.SizedBox(height: 30),
+        pw.Center(
+          child: pw.Text(
+            'Thank you for choosing His Grace Drugshop',
+            style: pw.TextStyle(fontSize: 10, fontStyle: pw.FontStyle.italic, color: PdfColors.grey600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildPdfSummaryBox(String title, String value, PdfColor color) {
+    PdfColor lightColor;
+    if (color == PdfColors.green700) {
+      lightColor = PdfColors.green100;
+    } else if (color == PdfColors.blue700) {
+      lightColor = PdfColors.blue100;
+    } else if (color == PdfColors.orange700) {
+      lightColor = PdfColors.orange100;
+    } else if (color == PdfColors.purple700) {
+      lightColor = PdfColors.purple100;
+    } else if (color == PdfColors.red700) {
+      lightColor = PdfColors.red100;
+    } else {
+      lightColor = PdfColors.grey100;
+    }
+    
+    return pw.Container(
+      width: 120,
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        color: lightColor,
+        borderRadius: pw.BorderRadius.circular(8),
+        border: pw.Border.all(color: color, width: 1),
+      ),
+      child: pw.Column(
+        children: [
+          pw.Text(
+            value,
+            style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: color),
+            textAlign: pw.TextAlign.center,
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            title,
+            style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfTable({
+    required List<String> headers,
+    required List<List<String>> rows,
+  }) {
+    if (rows.isEmpty) {
+      return pw.Container(
+        padding: const pw.EdgeInsets.all(20),
+        child: pw.Text('No data available', style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600)),
+      );
+    }
+    
+    return pw.TableHelper.fromTextArray(
+      headers: headers,
+      data: rows,
+      headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+      cellStyle: pw.TextStyle(fontSize: 9),
+      headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+      cellAlignment: pw.Alignment.centerLeft,
+      headerAlignment: pw.Alignment.centerLeft,
+      cellPadding: const pw.EdgeInsets.all(4),
+    );
   }
 
   void _updateDateRange(String period) {
@@ -222,9 +516,13 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           _startDate = DateTime(now.year, now.month - 1, 1);
           _endDate = DateTime(now.year, now.month, 0);
           break;
+        case 'Custom Range':
+          break;
       }
     });
-    _loadReport();
+    if (period != 'Custom Range') {
+      _loadReport();
+    }
   }
 
   Future<void> _selectCustomRange() async {
@@ -337,34 +635,46 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         children: [
           const Text('Select Period', style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _periods.map((period) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: FilterChip(
-                    label: Text(period, style: const TextStyle(fontSize: 12)),
-                    selected: _selectedPeriod == period,
-                    onSelected: (value) {
-                      if (period == 'Custom Range') {
-                        _selectCustomRange();
-                      } else {
-                        _updateDateRange(period);
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _periods.map((period) {
+              return FilterChip(
+                label: Text(period, style: const TextStyle(fontSize: 12)),
+                selected: _selectedPeriod == period,
+                onSelected: (value) {
+                  if (period == 'Custom Range') {
+                    _selectCustomRange();
+                  } else {
+                    _updateDateRange(period);
+                  }
+                },
+                backgroundColor: Colors.grey.shade100,
+                selectedColor: Colors.green.shade100,
+                checkmarkColor: Colors.green.shade700,
+              );
+            }).toList(),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today, size: 14),
-              const SizedBox(width: 4),
-              Text('${DateFormat('yyyy-MM-dd').format(_startDate)} - ${DateFormat('yyyy-MM-dd').format(_endDate)}', style: const TextStyle(fontSize: 11)),
-            ],
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today, size: 14, color: Colors.green.shade700),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${DateFormat('yyyy-MM-dd').format(_startDate)} - ${DateFormat('yyyy-MM-dd').format(_endDate)}',
+                    style: TextStyle(fontSize: 11, color: Colors.green.shade700),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -415,7 +725,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   }
 
   Widget _buildCreditSalesSection() {
-    // Group by credit ID
     final Map<String, Map<String, dynamic>> groupedCredits = {};
     
     for (var sale in _creditSalesHistory) {
@@ -458,7 +767,14 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           itemBuilder: (context, index) {
             final credit = creditSummaries[index];
             final isPaid = credit['status'] == 'paid';
-            final dueDate = credit['due_date'] as DateTime? ?? DateTime.now();
+            dynamic dueDateValue = credit['due_date'];
+            String dueDateStr = 'N/A';
+            
+            if (dueDateValue is DateTime) {
+              dueDateStr = DateFormat('yyyy-MM-dd').format(dueDateValue);
+            } else if (dueDateValue != null) {
+              dueDateStr = dueDateValue.toString();
+            }
             
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
@@ -477,7 +793,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       ),
                     ),
                     Text(
-                      'Due: ${DateFormat('yyyy-MM-dd').format(dueDate)}',
+                      'Due: $dueDateStr',
                       style: const TextStyle(fontSize: 10),
                     ),
                   ],
@@ -583,19 +899,20 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 DataColumn(label: Text('Total', style: TextStyle(fontSize: 11))),
               ],
               rows: _cashSalesHistory.take(20).map((sale) {
+                DateTime? saleDate = sale['sale_date'];
+                String formattedDate = '';
+                if (saleDate != null) {
+                  formattedDate = DateFormat('yyyy-MM-dd').format(saleDate);
+                } else {
+                  formattedDate = 'N/A';
+                }
+                
                 return DataRow(cells: [
-                  DataCell(Text(DateFormat('yyyy-MM-dd').format(sale['sale_date']), 
-                      style: const TextStyle(fontSize: 11))),
-                  DataCell(Text(sale['customer_name'] ?? 'Walk-in', 
-                      style: const TextStyle(fontSize: 11))),
-                  DataCell(Text(sale['medicine_name'] ?? '', 
-                      style: const TextStyle(fontSize: 11), 
-                      maxLines: 1, 
-                      overflow: TextOverflow.ellipsis)),
-                  DataCell(Text('${sale['quantity'] ?? 0}', 
-                      style: const TextStyle(fontSize: 11))),
-                  DataCell(Text('UGX ${(sale['total_price'] ?? 0.0).toStringAsFixed(0)}', 
-                      style: const TextStyle(fontSize: 11))),
+                  DataCell(Text(formattedDate, style: const TextStyle(fontSize: 11))),
+                  DataCell(Text(sale['customer_name'] ?? 'Walk-in', style: const TextStyle(fontSize: 11))),
+                  DataCell(Text(sale['medicine_name'] ?? '', style: const TextStyle(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  DataCell(Text('${sale['quantity'] ?? 0}', style: const TextStyle(fontSize: 11))),
+                  DataCell(Text('UGX ${(sale['total_price'] ?? 0.0).toStringAsFixed(0)}', style: const TextStyle(fontSize: 11))),
                 ]);
               }).toList(),
             ),

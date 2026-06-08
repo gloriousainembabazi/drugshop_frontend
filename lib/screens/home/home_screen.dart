@@ -1299,7 +1299,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             _buildQuickActionItem('Add Med', Icons.add_box, Colors.blue, '/add-medicine'),
             _buildQuickActionItem('Stock', Icons.inventory, Colors.brown, '/stock-take'),
             _buildQuickActionItem('Credit', Icons.credit_card, Colors.purple, '/credit'),
-            _buildQuickActionItem('RX', Icons.description, Colors.teal, '/prescriptions'),
+            _buildQuickActionItem('prescriptions', Icons.description, Colors.teal, '/prescriptions'),
             _buildQuickActionItem('Expense', Icons.receipt, Colors.red, '/expenses'),
             _buildQuickActionItem('Reports', Icons.assessment, Colors.orange, '/reports'),
             _buildQuickActionItem('More', Icons.more_horiz, Colors.grey, '/more'),

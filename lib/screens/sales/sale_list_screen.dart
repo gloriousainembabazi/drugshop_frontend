@@ -231,6 +231,11 @@ class SaleGroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // USE THE CLEAN GETTERS from SaleGroup
+    final displaySaleId = saleGroup.cleanSaleId;
+    final displayCustomer = saleGroup.cleanCustomerName;
+    final displayStaff = saleGroup.staffName;
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
@@ -266,7 +271,7 @@ class SaleGroupCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          saleGroup.saleId.isNotEmpty ? saleGroup.saleId : 'SALE-XXXXXX',
+                          displaySaleId,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -283,9 +288,9 @@ class SaleGroupCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          saleGroup.customerName != null && saleGroup.customerName!.isNotEmpty
-                              ? 'Customer: ${saleGroup.customerName} • By: ${saleGroup.staffName}'
-                              : 'By: ${saleGroup.staffName}',
+                          displayCustomer != 'Walk-in Customer'
+                              ? 'Customer: $displayCustomer • By: $displayStaff'
+                              : 'By: $displayStaff',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             color: Colors.grey.shade500,
