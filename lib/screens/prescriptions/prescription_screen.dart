@@ -275,39 +275,41 @@ class PrescriptionListTab extends StatelessWidget {
   }
 
   static void _showPrescriptionDetails(BuildContext context, Prescription rx, PrescriptionProvider provider) {
-    final filledCount = rx.items.fold<int>(0, (sum, item) => sum + item.filledQuantity);
-    final totalCount = rx.items.fold<int>(0, (sum, item) => sum + item.prescribedQuantity);
-    final progress = totalCount > 0 ? filledCount / totalCount : 0.0;
+  final filledCount = rx.items.fold<int>(0, (sum, item) => sum + item.filledQuantity);
+  final totalCount = rx.items.fold<int>(0, (sum, item) => sum + item.prescribedQuantity);
+  final progress = totalCount > 0 ? filledCount / totalCount : 0.0;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Prescription Details',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Prescription Details',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        // FIXED: Wrap buttons in a SingleChildScrollView to prevent overflow
-                        SingleChildScrollView(
+                      ),
+                      // Wrap in Expanded to constrain horizontal space
+                      Expanded(
+                        child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
@@ -319,23 +321,14 @@ class PrescriptionListTab extends StatelessWidget {
                                       title: const Text('Delete Prescription'),
                                       content: Text('Delete ${rx.prescriptionId}?'),
                                       actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
-                                          child: const Text('CANCEL'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, true),
-                                          style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                          child: const Text('DELETE'),
-                                        ),
+                                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
+                                        TextButton(onPressed: () => Navigator.pop(context, true), style: TextButton.styleFrom(foregroundColor: Colors.red), child: const Text('DELETE')),
                                       ],
                                     ),
                                   );
                                   if (confirm == true) {
                                     await provider.deletePrescription(rx.id);
-                                    if (context.mounted) {
-                                      provider.loadPrescriptions();
-                                    }
+                                    if (context.mounted) provider.loadPrescriptions();
                                   }
                                 },
                                 tooltip: 'Delete',
@@ -345,9 +338,7 @@ class PrescriptionListTab extends StatelessWidget {
                                 onPressed: () async {
                                   await PrescriptionPdfService.generateAndDownload(rx);
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('PDF downloaded successfully')),
-                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF downloaded successfully')));
                                   }
                                 },
                                 tooltip: 'Download PDF',
@@ -362,130 +353,90 @@ class PrescriptionListTab extends StatelessWidget {
                               IconButton(
                                 icon: const Icon(Icons.share, color: Colors.orange),
                                 onPressed: () async {
-                                  await Share.share(
-                                    'Prescription ${rx.prescriptionId} for ${rx.patientName}\n'
-                                    'Status: ${rx.statusDisplay}\n'
-                                    'Doctor: ${rx.doctorName}\n'
-                                    'Medicines: ${rx.items.length} items',
-                                  );
+                                  await Share.share('Prescription ${rx.prescriptionId} for ${rx.patientName}');
                                 },
                                 tooltip: 'Share',
                               ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  if (rx.status == 'partially_filled' || rx.status == 'pending') ...[
+                    LinearProgressIndicator(
+                      value: progress.clamp(0.0, 1.0),
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
                     ),
-                    const SizedBox(height: 24),
-                    
-                    if (rx.status == 'partially_filled' || rx.status == 'pending')
-                      Column(
+                    const SizedBox(height: 8),
+                    Text('$filledCount of $totalCount items filled', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 16),
+                  ],
+                  // ... remainder of your existing builder code (details and medicines)
+                  _buildDetailRow('RX Number', rx.prescriptionId),
+                  _buildDetailRow('Patient', rx.patientName),
+                  if (rx.patientAge != null) _buildDetailRow('Age', '${rx.patientAge}'),
+                  if (rx.patientPhone.isNotEmpty) _buildDetailRow('Phone', rx.patientPhone),
+                  _buildDetailRow('Doctor', rx.doctorName),
+                  _buildDetailRow('Hospital', rx.hospital.isEmpty ? 'Not specified' : rx.hospital),
+                  _buildDetailRow('Issue Date', DateFormat('dd/MM/yyyy').format(rx.issueDate)),
+                  _buildDetailRow('Expiry Date', DateFormat('dd/MM/yyyy').format(rx.expiryDate)),
+                  _buildDetailRow('Status', rx.statusDisplay),
+                  if (rx.diagnosis.isNotEmpty) _buildDetailRow('Diagnosis', rx.diagnosis),
+                  if (rx.notes.isNotEmpty) _buildDetailRow('Notes', rx.notes),
+                  if (rx.prescriptionImage != null && rx.prescriptionImage!.isNotEmpty) _buildDetailRow('Has Image', 'Yes ✓'),
+                  if (rx.items.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text('Medicines', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    ...rx.items.map((item) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          LinearProgressIndicator(
-                            value: progress.clamp(0.0, 1.0),
-                            backgroundColor: Colors.grey.shade200,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$filledCount of $totalCount items filled',
-                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    
-                    _buildDetailRow('RX Number', rx.prescriptionId),
-                    _buildDetailRow('Patient', rx.patientName),
-                    if (rx.patientAge != null) _buildDetailRow('Age', '${rx.patientAge}'),
-                    if (rx.patientPhone.isNotEmpty) _buildDetailRow('Phone', rx.patientPhone),
-                    _buildDetailRow('Doctor', rx.doctorName),
-                    _buildDetailRow('Hospital', rx.hospital.isEmpty ? 'Not specified' : rx.hospital),
-                    _buildDetailRow('Issue Date', DateFormat('dd/MM/yyyy').format(rx.issueDate)),
-                    _buildDetailRow('Expiry Date', DateFormat('dd/MM/yyyy').format(rx.expiryDate)),
-                    _buildDetailRow('Status', rx.statusDisplay),
-                    if (rx.diagnosis.isNotEmpty) _buildDetailRow('Diagnosis', rx.diagnosis),
-                    if (rx.notes.isNotEmpty) _buildDetailRow('Notes', rx.notes),
-                    if (rx.prescriptionImage != null && rx.prescriptionImage!.isNotEmpty)
-                      _buildDetailRow('Has Image', 'Yes ✓'),
-                    if (rx.items.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Medicines',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...rx.items.map((item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.medicineName,
-                                    style: GoogleFonts.poppins(fontSize: 14),
-                                  ),
-                                  if (item.dosageInstructions.isNotEmpty)
-                                    Text(
-                                      item.dosageInstructions,
-                                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${item.prescribedQuantity} units',
-                                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
-                                ),
-                                if (item.filledQuantity > 0)
-                                  Text(
-                                    'Filled: ${item.filledQuantity}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      color: item.isFullyFilled ? Colors.green : Colors.orange,
-                                    ),
-                                  ),
+                                Text(item.medicineName, style: GoogleFonts.poppins(fontSize: 14)),
+                                if (item.dosageInstructions.isNotEmpty) Text(item.dosageInstructions, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey)),
                               ],
                             ),
-                          ],
-                        ),
-                      )),
-                    ],
-                    const SizedBox(height: 24),
-                    if (rx.status == 'pending' || rx.status == 'partially_filled')
-                      CustomButton(
-                        text: 'FILL PRESCRIPTION',
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          final result = await showDialog(
-                            context: context,
-                            builder: (context) => FillPrescriptionDialog(prescription: rx),
-                          );
-                          if (result == true && context.mounted) {
-                            provider.loadPrescriptions();
-                          }
-                        },
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('${item.prescribedQuantity} units', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+                              if (item.filledQuantity > 0) Text('Filled: ${item.filledQuantity}', style: GoogleFonts.poppins(fontSize: 11, color: item.isFullyFilled ? Colors.green : Colors.orange)),
+                            ],
+                          ),
+                        ],
                       ),
+                    )),
                   ],
-                ),
+                  const SizedBox(height: 24),
+                  if (rx.status == 'pending' || rx.status == 'partially_filled')
+                    CustomButton(
+                      text: 'FILL PRESCRIPTION',
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final result = await showDialog(context: context, builder: (context) => FillPrescriptionDialog(prescription: rx));
+                        if (result == true && context.mounted) provider.loadPrescriptions();
+                      },
+                    ),
+                ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 
   static Widget _buildDetailRow(String label, String value) {
     return Padding(
