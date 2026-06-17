@@ -102,30 +102,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(authService, storageService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => MedicineProvider(apiService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => SaleProvider(apiService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ReportProvider(apiService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => SettingsProvider(storageService, apiService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ExpenseProvider(apiService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CreditProvider(apiService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => PrescriptionProvider(apiService),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider(authService, storageService)),
+        ChangeNotifierProvider(create: (_) => MedicineProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => SaleProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => ReportProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => SettingsProvider(storageService, apiService)),
+        ChangeNotifierProvider(create: (_) => ExpenseProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => CreditProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => PrescriptionProvider(apiService)),
       ],
       child: Consumer2<AuthProvider, SettingsProvider>(
         builder: (context, authProvider, settingsProvider, child) {
@@ -135,6 +119,11 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settingsProvider.getThemeMode(),
+            
+            // 🌟 ADDED: This forces the entire app to rebuild when the language changes
+            // Ensure your settingsProvider.language returns codes like 'en', 'fr', 'es', 'ar', 'sw'
+            locale: Locale(settingsProvider.language.toLowerCase()),
+            
             initialRoute: _getInitialRoute(authProvider, onboardingCompleted),
             routes: {
               '/splash': (context) => const SplashScreen(),
@@ -163,88 +152,30 @@ class MyApp extends StatelessWidget {
               '/more': (context) => const MoreScreen(),
             },
             onGenerateRoute: (settings) {
-              // MEDICINE DETAIL
               if (settings.name == '/medicine-detail') {
                 final args = settings.arguments as Map<String, dynamic>?;
-                final medicineId = args?['id'] ?? 0;
-                return MaterialPageRoute(
-                  builder: (context) => MedicineDetailScreen(
-                    medicineId: medicineId,
-                  ),
-                );
+                return MaterialPageRoute(builder: (context) => MedicineDetailScreen(medicineId: args?['id'] ?? 0));
               }
-
-              // SALE DETAIL
               if (settings.name == '/sale-detail') {
                 final args = settings.arguments as Map<String, dynamic>?;
                 final saleId = args?['sale_id'] ?? '';
-                if (saleId.isEmpty) {
-                  return MaterialPageRoute(
-                    builder: (context) => const Scaffold(
-                      body: Center(child: Text('Invalid sale ID')),
-                    ),
-                  );
-                }
-                return MaterialPageRoute(
-                  builder: (context) => SaleDetailScreen(
-                    saleId: saleId,
-                  ),
-                );
+                if (saleId.isEmpty) return MaterialPageRoute(builder: (context) => const Scaffold(body: Center(child: Text('Invalid sale ID'))));
+                return MaterialPageRoute(builder: (context) => SaleDetailScreen(saleId: saleId));
               }
-
-              // OTP VERIFICATION
               if (settings.name == '/otp-verification') {
                 final args = settings.arguments;
-                if (args is String) {
-                  return MaterialPageRoute(
-                    builder: (context) => OtpVerificationScreen(
-                      destination: args,
-                      type: 'email',
-                      purpose: 'verification',
-                    ),
-                  );
-                }
-                if (args is Map<String, dynamic>) {
-                  return MaterialPageRoute(
-                    builder: (context) => OtpVerificationScreen(
-                      destination: args['destination'] ?? '',
-                      type: args['type'] ?? 'email',
-                      purpose: args['purpose'] ?? 'verification',
-                    ),
-                  );
-                }
-                return MaterialPageRoute(
-                  builder: (context) => const OtpVerificationScreen(
-                    destination: '',
-                    type: 'email',
-                    purpose: 'verification',
-                  ),
-                );
+                if (args is String) return MaterialPageRoute(builder: (context) => OtpVerificationScreen(destination: args, type: 'email', purpose: 'verification'));
+                if (args is Map<String, dynamic>) return MaterialPageRoute(builder: (context) => OtpVerificationScreen(destination: args['destination'] ?? '', type: args['type'] ?? 'email', purpose: args['purpose'] ?? 'verification'));
+                return MaterialPageRoute(builder: (context) => const OtpVerificationScreen(destination: '', type: 'email', purpose: 'verification'));
               }
-
-              // OTP RESET
               if (settings.name == '/otp-verification-reset') {
                 final args = settings.arguments as Map<String, dynamic>?;
-                return MaterialPageRoute(
-                  builder: (context) => OtpVerificationScreen(
-                    destination: args?['destination'] ?? '',
-                    type: args?['type'] ?? 'email',
-                    purpose: 'reset',
-                  ),
-                );
+                return MaterialPageRoute(builder: (context) => OtpVerificationScreen(destination: args?['destination'] ?? '', type: args?['type'] ?? 'email', purpose: 'reset'));
               }
-
-              // RESET PASSWORD
               if (settings.name == '/reset-password') {
                 final args = settings.arguments as Map<String, dynamic>?;
-                return MaterialPageRoute(
-                  builder: (context) => ResetPasswordScreen(
-                    email: args?['email'] ?? '',
-                    otp: args?['otp']?.toString(),
-                  ),
-                );
+                return MaterialPageRoute(builder: (context) => ResetPasswordScreen(email: args?['email'] ?? '', otp: args?['otp']?.toString()));
               }
-
               return null;
             },
           );
@@ -254,15 +185,9 @@ class MyApp extends StatelessWidget {
   }
 
   String _getInitialRoute(AuthProvider authProvider, bool onboardingCompleted) {
-    if (authProvider.isLoading) {
-      return '/splash';
-    }
-    if (authProvider.isAuthenticated) {
-      return '/home';
-    }
-    if (!onboardingCompleted) {
-      return '/onboarding';
-    }
+    if (authProvider.isLoading) return '/splash';
+    if (authProvider.isAuthenticated) return '/home';
+    if (!onboardingCompleted) return '/onboarding';
     return '/login';
   }
 }
