@@ -1,4 +1,4 @@
-# practice_2
+# His Grace Drugshop
 
 A new Flutter project.
 
