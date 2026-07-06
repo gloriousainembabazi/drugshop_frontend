@@ -25,8 +25,8 @@ class Supplier {
       phone: json['phone'] ?? '',
       email: json['email'] ?? '',
       address: json['address'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : DateTime.now(),
     );
   }

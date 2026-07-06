@@ -17,20 +17,21 @@ class MedicineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Determine if medicine is expired and should be disabled
     final bool isExpired = medicine.isExpired;
-    
+
     return Opacity(
       opacity: isExpired ? 0.5 : 1.0,
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: isExpired 
+          side: isExpired
               ? BorderSide(color: Colors.red.shade300, width: 1)
               : BorderSide.none,
         ),
         color: isExpired ? Colors.grey.shade100 : null,
         child: InkWell(
-          onTap: onTap, // CHANGE THIS LINE - Always allow tap, even for expired medicines
+          onTap:
+              onTap, // CHANGE THIS LINE - Always allow tap, even for expired medicines
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -41,9 +42,9 @@ class MedicineCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: isExpired 
-                        ? Colors.red.withOpacity(0.1)
-                        : medicine.stockStatusColor.withOpacity(0.1),
+                    color: isExpired
+                        ? Colors.red.withValues(alpha: 0.1)
+                        : medicine.stockStatusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -68,7 +69,8 @@ class MedicineCard extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          decoration: isExpired ? TextDecoration.lineThrough : null,
+                          decoration:
+                              isExpired ? TextDecoration.lineThrough : null,
                           color: isExpired ? Colors.grey : null,
                         ),
                       ),
@@ -82,7 +84,7 @@ class MedicineCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
+                                color: Colors.red.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -101,7 +103,8 @@ class MedicineCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: medicine.stockStatusColor.withOpacity(0.1),
+                                color: medicine.stockStatusColor
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -120,7 +123,8 @@ class MedicineCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: medicine.expiryStatusColor.withOpacity(0.1),
+                                color: medicine.expiryStatusColor
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -157,7 +161,8 @@ class MedicineCard extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: isExpired ? Colors.grey : AppColors.primaryGreen,
-                        decoration: isExpired ? TextDecoration.lineThrough : null,
+                        decoration:
+                            isExpired ? TextDecoration.lineThrough : null,
                       ),
                     ),
                     const SizedBox(height: 4),

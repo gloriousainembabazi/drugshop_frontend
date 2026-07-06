@@ -83,7 +83,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                       const SizedBox(height: 2),
                       Text(
                         widget.selectedItem != null
-                            ? widget.displayName(widget.selectedItem!)
+                            ? widget.displayName(widget.selectedItem as T)
                             : widget.hint ?? 'Select ${widget.label}',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
@@ -100,7 +100,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
             ),
           ),
         ),
-        
+
         // Validation error
         if (widget.validator(widget.selectedItem) != null)
           Padding(
@@ -120,7 +120,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   void _showSearchDialog() {
     _searchController.clear();
     setState(() => _searchQuery = '');
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -130,7 +130,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Container(
+              child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.7,
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Column(
@@ -162,7 +162,8 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white),
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
                                 onPressed: () => Navigator.pop(context),
                               ),
                             ],
@@ -173,11 +174,14 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                             controller: _searchController,
                             autofocus: true,
                             decoration: InputDecoration(
-                              hintText: 'Search ${widget.label.toLowerCase()}...',
-                              prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                              hintText:
+                                  'Search ${widget.label.toLowerCase()}...',
+                              prefixIcon: const Icon(Icons.search,
+                                  color: Colors.white70),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
-                                      icon: const Icon(Icons.clear, color: Colors.white70),
+                                      icon: const Icon(Icons.clear,
+                                          color: Colors.white70),
                                       onPressed: () {
                                         _searchController.clear();
                                         setStateDialog(() {
@@ -187,7 +191,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                     )
                                   : null,
                               filled: true,
-                              fillColor: Colors.white.withOpacity(0.2),
+                              fillColor: Colors.white.withValues(alpha: 0.2),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 borderSide: BorderSide.none,
@@ -204,7 +208,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                         ],
                       ),
                     ),
-                    
+
                     // Items List
                     Expanded(
                       child: widget.isLoading
@@ -243,14 +247,17 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                   itemCount: _filteredItems.length,
                                   itemBuilder: (context, index) {
                                     final item = _filteredItems[index];
-                                    final isSelected = widget.selectedItem == item;
-                                    
+                                    final isSelected =
+                                        widget.selectedItem == item;
+
                                     return ListTile(
                                       leading: Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF2E7D32).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(10),
+                                          color: const Color(0xFF2E7D32)
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Icon(
                                           widget.prefixIcon,
@@ -261,13 +268,20 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                       title: Text(
                                         widget.displayName(item),
                                         style: GoogleFonts.poppins(
-                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                          color: isSelected ? const Color(0xFF2E7D32) : null,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                          color: isSelected
+                                              ? const Color(0xFF2E7D32)
+                                              : null,
                                         ),
                                       ),
-                                      subtitle: widget.showSubtitle ? _getSubtitle(item) : null,
+                                      subtitle: widget.showSubtitle
+                                          ? _getSubtitle(item)
+                                          : null,
                                       trailing: isSelected
-                                          ? const Icon(Icons.check_circle, color: Color(0xFF2E7D32))
+                                          ? const Icon(Icons.check_circle,
+                                              color: Color(0xFF2E7D32))
                                           : null,
                                       onTap: () {
                                         widget.onChanged(item);
@@ -290,9 +304,9 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   Widget? _getSubtitle(T item) {
     // Use runtimeType to check the type
     if (item is Category) {
-      if (item.description != null && item.description!.isNotEmpty) {
+      if (item.description.isNotEmpty) {
         return Text(
-          item.description!,
+          item.description,
           style: GoogleFonts.poppins(
             fontSize: 12,
             color: Colors.grey.shade600,
@@ -302,7 +316,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
         );
       }
     } else if (item is Supplier) {
-      if (item.phone != null && item.phone!.isNotEmpty) {
+      if (item.phone.isNotEmpty) {
         return Text(
           '📞 ${item.phone}',
           style: GoogleFonts.poppins(

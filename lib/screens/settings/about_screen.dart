@@ -25,7 +25,7 @@ class AboutScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryGreen.withOpacity(0.3),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.3),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   ),
@@ -80,7 +80,7 @@ class AboutScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
+                color: AppColors.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -167,7 +167,8 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildFeatureItem(Icons.medical_services, 'Medicine Management'),
+                    _buildFeatureItem(
+                        Icons.medical_services, 'Medicine Management'),
                     _buildFeatureItem(Icons.inventory, 'Stock Tracking'),
                     _buildFeatureItem(Icons.shopping_cart, 'Sales Recording'),
                     _buildFeatureItem(Icons.assessment, 'Reports & Analytics'),
@@ -194,7 +195,8 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(String label, String value, IconData icon, {VoidCallback? onTap}) {
+  Widget _buildInfoCard(String label, String value, IconData icon,
+      {VoidCallback? onTap}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -207,7 +209,9 @@ class AboutScreen extends StatelessWidget {
           value,
           style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
         ),
-        trailing: onTap != null ? const Icon(Icons.arrow_forward_ios, size: 16) : null,
+        trailing: onTap != null
+            ? const Icon(Icons.arrow_forward_ios, size: 16)
+            : null,
         onTap: onTap,
       ),
     );

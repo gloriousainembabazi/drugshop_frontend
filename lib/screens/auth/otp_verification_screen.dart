@@ -1,6 +1,8 @@
 // lib/screens/auth/otp_verification_screen.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,27 +24,27 @@ class OtpVerificationScreen extends StatefulWidget {
   });
 
   @override
-  State<OtpVerificationScreen> createState() =>
-      _OtpVerificationScreenState();
+  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState
-    extends State<OtpVerificationScreen> {
-
-  final List<TextEditingController> _otpControllers =
-      List.generate(
+class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+  final List<TextEditingController> _otpControllers = List.generate(
     6,
     (index) => TextEditingController(),
   );
 
-  final List<FocusNode> _focusNodes =
-      List.generate(
+  final List<FocusNode> _focusNodes = List.generate(
     6,
     (index) => FocusNode(),
   );
 
-  int _start = 60;
-  bool _canResend = false;
+  // Countdown value lives in a ValueNotifier so the timer tick
+  // only rebuilds the small countdown text widget, NOT the whole
+  // screen (which was stealing focus/keystrokes from the OTP boxes
+  // on every 1-second tick).
+  final ValueNotifier<int> _secondsLeft = ValueNotifier<int>(60);
+  final ValueNotifier<bool> _canResendNotifier = ValueNotifier<bool>(false);
+  Timer? _timer;
 
   @override
   void initState() {
@@ -54,6 +56,14 @@ class _OtpVerificationScreenState
         _checkAutoVerify();
       });
     }
+
+    // Autofocus the first box after the first frame renders,
+    // so the keyboard is ready before the user starts typing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focusNodes[0].requestFocus();
+      }
+    });
   }
 
   void _checkAutoVerify() {
@@ -64,22 +74,29 @@ class _OtpVerificationScreenState
   }
 
   void _startTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-
-      setState(() {
-        if (_start > 0) {
-          _start--;
-          _startTimer();
-        } else {
-          _canResend = true;
-        }
-      });
+    _secondsLeft.value = 60;
+    _canResendNotifier.value = false;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_secondsLeft.value > 0) {
+        _secondsLeft.value--;
+      } else {
+        _canResendNotifier.value = true;
+        timer.cancel();
+      }
     });
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
+    _secondsLeft.dispose();
+    _canResendNotifier.dispose();
+
     for (var controller in _otpControllers) {
       controller.removeListener(_checkAutoVerify);
       controller.dispose();
@@ -93,11 +110,6 @@ class _OtpVerificationScreenState
   }
 
   void _onOtpChanged(int index, String value) {
-    if (value.length > 1) {
-      _otpControllers[index].text = value.substring(0, 1);
-      return;
-    }
-
     if (value.length == 1 && index < 5) {
       FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
     }
@@ -106,12 +118,11 @@ class _OtpVerificationScreenState
       FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
     }
 
-    setState(() {});
+    _checkAutoVerify();
   }
 
   Future<void> _verifyOtp() async {
-    final otp =
-        _otpControllers.map((e) => e.text).join();
+    final otp = _otpControllers.map((e) => e.text).join();
 
     if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,8 +134,7 @@ class _OtpVerificationScreenState
       return;
     }
 
-    final authProvider =
-        Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
@@ -157,8 +167,7 @@ class _OtpVerificationScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.error ??
-                'OTP verification failed',
+            authProvider.error ?? 'OTP verification failed',
           ),
           backgroundColor: Colors.red,
         ),
@@ -167,15 +176,9 @@ class _OtpVerificationScreenState
   }
 
   Future<void> _resendOtp() async {
-    setState(() {
-      _start = 60;
-      _canResend = false;
-    });
-
     _startTimer();
 
-    final authProvider =
-        Provider.of<AuthProvider>(
+    final authProvider = Provider.of<AuthProvider>(
       context,
       listen: false,
     );
@@ -185,19 +188,16 @@ class _OtpVerificationScreenState
     try {
       if (widget.purpose == 'verification') {
         if (widget.type == 'email') {
-          success =
-              await authProvider.sendVerificationOtp(
+          success = await authProvider.sendVerificationOtp(
             widget.destination,
           );
         } else {
-          success = await authProvider
-              .sendPhoneVerificationOtp(
+          success = await authProvider.sendPhoneVerificationOtp(
             widget.destination,
           );
         }
       } else {
-        success = await authProvider
-            .forgotPassword(widget.destination);
+        success = await authProvider.forgotPassword(widget.destination);
       }
 
       if (success && mounted) {
@@ -219,8 +219,7 @@ class _OtpVerificationScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              authProvider.error ??
-                  'Failed to resend OTP',
+              authProvider.error ?? 'Failed to resend OTP',
             ),
             backgroundColor: Colors.red,
           ),
@@ -290,6 +289,7 @@ class _OtpVerificationScreenState
 
   Widget _buildOtpBox(int index) {
     return SizedBox(
+      key: ValueKey('otp_box_$index'),
       width: 50,
       height: 60,
       child: TextField(
@@ -297,7 +297,11 @@ class _OtpVerificationScreenState
         focusNode: _focusNodes[index],
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
-        maxLength: 1,
+        autofocus: index == 0,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(1),
+        ],
         style: GoogleFonts.poppins(
           fontSize: 22,
           fontWeight: FontWeight.bold,
@@ -352,7 +356,7 @@ class _OtpVerificationScreenState
                       width: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppConstants.primaryColor.withOpacity(0.1),
+                        color: AppConstants.primaryColor.withValues(alpha: 0.1),
                       ),
                       child: Icon(
                         widget.type == 'email'
@@ -430,20 +434,34 @@ class _OtpVerificationScreenState
                     children: [
                       Text('Didn\'t receive code? ',
                           style: GoogleFonts.poppins(color: Colors.grey[600])),
-                      if (!_canResend)
-                        Text('Resend in $_start s',
-                            style: GoogleFonts.poppins(color: Colors.grey[400])),
-                      if (_canResend)
-                        GestureDetector(
-                          onTap: _resendOtp,
-                          child: Text(
-                            'Resend',
-                            style: GoogleFonts.poppins(
-                              color: AppConstants.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _canResendNotifier,
+                        builder: (context, canResend, _) {
+                          if (canResend) {
+                            return GestureDetector(
+                              onTap: _resendOtp,
+                              child: Text(
+                                'Resend',
+                                style: GoogleFonts.poppins(
+                                  color: AppConstants.primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          }
+                          return ValueListenableBuilder<int>(
+                            valueListenable: _secondsLeft,
+                            builder: (context, seconds, _) {
+                              return Text(
+                                'Resend in $seconds s',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey[400],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),

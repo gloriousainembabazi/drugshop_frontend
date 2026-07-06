@@ -21,7 +21,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // ✅ CHANGED: username controller
+  // âœ… CHANGED: username controller
   final _usernameController = TextEditingController();
 
   final _passwordController = TextEditingController();
@@ -42,8 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final savedUsername = prefs.getString('saved_username');
 
-      final rememberMe =
-          prefs.getBool('remember_me') ?? false;
+      final rememberMe = prefs.getBool('remember_me') ?? false;
 
       setState(() {
         _rememberMe = rememberMe;
@@ -118,8 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else {
-      if (authProvider.verificationEmail != null &&
-          mounted) {
+      if (authProvider.verificationEmail != null && mounted) {
         _showVerificationDialog();
       }
 
@@ -143,22 +141,35 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
 
-                Navigator.pushNamed(
+                final authProvider = Provider.of<AuthProvider>(
                   context,
-                  '/otp-verification',
-                  arguments: {
-                    'destination':
-                        Provider.of<AuthProvider>(
-                      context,
-                      listen: false,
-                    ).verificationEmail,
-                    'type': 'email',
-                    'purpose': 'verification',
-                  },
+                  listen: false,
                 );
+
+                final email = authProvider.verificationEmail;
+
+                // âœ… FIX: Trigger the OTP send BEFORE navigating.
+                // Previously the app only navigated to the verify
+                // screen without sending a code, so nothing arrived
+                // until the user manually tapped "Resend".
+                if (email != null) {
+                  await authProvider.sendVerificationOtp(email);
+                }
+
+                if (mounted) {
+                  Navigator.pushNamed(
+                    context,
+                    '/otp-verification',
+                    arguments: {
+                      'destination': email,
+                      'type': 'email',
+                      'purpose': 'verification',
+                    },
+                  );
+                }
               },
               child: const Text(
                 'Verify Now',
@@ -183,8 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 20),
 
@@ -198,7 +208,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(75),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryGreen.withOpacity(0.3),
+                            color:
+                                AppColors.primaryGreen.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -260,27 +271,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 40),
 
                   // ERROR MESSAGE
-                  if (authProvider.error != null)
-                    ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.red[200]!,
-                          ),
-                        ),
-                        child: Text(
-                          authProvider.error!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                          ),
-                          textAlign: TextAlign.center,
+                  if (authProvider.error != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.red[200]!,
                         ),
                       ),
-                      const SizedBox(height: 20),
-                    ],
+                      child: Text(
+                        authProvider.error!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   // FORM
                   Form(
@@ -293,9 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: Icons.person_outline,
                           validator: Validators.required,
                         ),
-
                         const SizedBox(height: 16),
-
                         CustomTextField(
                           controller: _passwordController,
                           label: 'Password',
@@ -348,7 +356,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-
                       TextButton(
                         onPressed: () {
                           Navigator.pushNamed(

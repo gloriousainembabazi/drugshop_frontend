@@ -9,7 +9,7 @@ class Expense {
   final double amount;
   final String paymentMethod;
   final DateTime paymentDate;
-  final String recordedBy;      // Staff name who recorded this expense
+  final String recordedBy; // Staff name who recorded this expense
   final String receiptNumber;
   final String notes;
 
@@ -54,17 +54,17 @@ class Expense {
       description: json['description'] ?? '',
       amount: parseAmount(json['amount']),
       paymentMethod: json['payment_method'] ?? 'cash',
-      paymentDate: json['payment_date'] != null 
-          ? DateTime.parse(json['payment_date']) 
+      paymentDate: json['payment_date'] != null
+          ? DateTime.parse(json['payment_date'])
           : DateTime.now(),
       recordedBy: recordedBy,
       receiptNumber: json['receipt_number'] ?? '',
       notes: json['notes'] ?? '',
     );
   }
-  
+
   String get formattedAmount => 'UGX ${amount.toStringAsFixed(0)}';
-  
+
   String get paymentMethodDisplay {
     switch (paymentMethod) {
       case 'cash':
@@ -101,8 +101,8 @@ class ExpenseCategory {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : DateTime.now(),
     );
   }

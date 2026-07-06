@@ -31,7 +31,8 @@ class StockProvider extends ChangeNotifier {
       final response = await _apiService.getStockCounts();
 
       if (response['success'] == true) {
-        final List<dynamic> data = response['data'] is List ? response['data'] : [];
+        final List<dynamic> data =
+            response['data'] is List ? response['data'] : [];
 
         _stockCounts = data.map((e) => StockCount.fromJson(e)).toList();
 

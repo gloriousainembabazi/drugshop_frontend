@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';  
+import 'package:intl/intl.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/medicine_provider.dart';
 import '../../providers/sale_provider.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../utils/constants.dart';
 
 class ReportDashboard extends StatefulWidget {
   const ReportDashboard({super.key});
@@ -24,9 +23,10 @@ class _ReportDashboardState extends State<ReportDashboard> {
 
   Future<void> _loadReports() async {
     final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
     final saleProvider = Provider.of<SaleProvider>(context, listen: false);
-    
+
     await Future.wait([
       reportProvider.loadDashboardSummary(),
       reportProvider.loadDailySalesReport(),
@@ -84,7 +84,8 @@ class _ReportDashboardState extends State<ReportDashboard> {
       body: RefreshIndicator(
         onRefresh: _loadReports,
         child: Consumer3<ReportProvider, MedicineProvider, SaleProvider>(
-          builder: (context, reportProvider, medicineProvider, saleProvider, child) {
+          builder:
+              (context, reportProvider, medicineProvider, saleProvider, child) {
             if (reportProvider.isLoading) {
               return const LoadingIndicator();
             }
@@ -137,9 +138,9 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Report Categories
                   Text(
                     'Report Categories',
@@ -149,7 +150,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildReportCard(
                     'Sales Report',
                     'View daily and monthly sales with detailed analytics',
@@ -159,7 +160,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       Navigator.pushNamed(context, '/sales-report');
                     },
                   ),
-                  
+
                   _buildReportCard(
                     'Inventory Report',
                     'Check stock levels, expiring medicines, and inventory value',
@@ -169,7 +170,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       Navigator.pushNamed(context, '/inventory-report');
                     },
                   ),
-                  
+
                   _buildReportCard(
                     'Staff Performance',
                     'Monitor staff sales activity and performance metrics',
@@ -179,9 +180,9 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       Navigator.pushNamed(context, '/staff-report');
                     },
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Alerts Section
                   if (medicineProvider.lowStockMedicines.isNotEmpty ||
                       medicineProvider.expiringMedicines.isNotEmpty ||
@@ -194,7 +195,6 @@ class _ReportDashboardState extends State<ReportDashboard> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
                     if (medicineProvider.lowStockMedicines.isNotEmpty)
                       _buildAlertCard(
                         'Low Stock Alert',
@@ -203,7 +203,6 @@ class _ReportDashboardState extends State<ReportDashboard> {
                         Colors.orange,
                         () => _navigateToLowStock(context),
                       ),
-                    
                     if (medicineProvider.expiringMedicines.isNotEmpty)
                       _buildAlertCard(
                         'Expiring Soon',
@@ -212,7 +211,6 @@ class _ReportDashboardState extends State<ReportDashboard> {
                         Colors.blue,
                         () => _navigateToExpiring(context),
                       ),
-                    
                     if (medicineProvider.expiredMedicines.isNotEmpty)
                       _buildAlertCard(
                         'Expired Medicines',
@@ -231,7 +229,8 @@ class _ReportDashboardState extends State<ReportDashboard> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -262,7 +261,8 @@ class _ReportDashboardState extends State<ReportDashboard> {
     );
   }
 
-  Widget _buildReportCard(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildReportCard(String title, String subtitle, IconData icon,
+      Color color, VoidCallback onTap) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -271,7 +271,7 @@ class _ReportDashboardState extends State<ReportDashboard> {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: color),
@@ -295,10 +295,11 @@ class _ReportDashboardState extends State<ReportDashboard> {
     );
   }
 
-  Widget _buildAlertCard(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildAlertCard(String title, String subtitle, IconData icon,
+      Color color, VoidCallback onTap) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Icon(icon, color: color),
@@ -343,7 +344,7 @@ class AlertDetailScreen extends StatelessWidget {
       body: Consumer<MedicineProvider>(
         builder: (context, medicineProvider, child) {
           List medicines = [];
-          
+
           switch (alertType) {
             case AlertType.lowStock:
               medicines = medicineProvider.lowStockMedicines;
@@ -355,27 +356,27 @@ class AlertDetailScreen extends StatelessWidget {
               medicines = medicineProvider.expiredMedicines;
               break;
           }
-          
+
           if (medicines.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    alertType == AlertType.lowStock 
-                        ? Icons.check_circle 
-                        : alertType == AlertType.expiring 
-                            ? Icons.event_available 
+                    alertType == AlertType.lowStock
+                        ? Icons.check_circle
+                        : alertType == AlertType.expiring
+                            ? Icons.event_available
                             : Icons.verified,
                     size: 80,
                     color: Colors.green.shade300,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    alertType == AlertType.lowStock 
-                        ? 'No low stock medicines' 
-                        : alertType == AlertType.expiring 
-                            ? 'No expiring medicines' 
+                    alertType == AlertType.lowStock
+                        ? 'No low stock medicines'
+                        : alertType == AlertType.expiring
+                            ? 'No expiring medicines'
                             : 'No expired medicines',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
@@ -387,7 +388,7 @@ class AlertDetailScreen extends StatelessWidget {
               ),
             );
           }
-          
+
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: medicines.length,
@@ -401,11 +402,12 @@ class AlertDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMedicineCard(dynamic medicine, AlertType alertType, BuildContext context) {
+  Widget _buildMedicineCard(
+      dynamic medicine, AlertType alertType, BuildContext context) {
     Color cardColor;
     IconData statusIcon;
     String statusText;
-    
+
     switch (alertType) {
       case AlertType.lowStock:
         cardColor = Colors.orange;
@@ -416,7 +418,8 @@ class AlertDetailScreen extends StatelessWidget {
         final daysLeft = medicine.daysUntilExpiry;
         cardColor = daysLeft <= 7 ? Colors.red : Colors.blue;
         statusIcon = Icons.event;
-        statusText = daysLeft <= 7 ? 'Expiring Soon!' : 'Expiring in $daysLeft days';
+        statusText =
+            daysLeft <= 7 ? 'Expiring Soon!' : 'Expiring in $daysLeft days';
         break;
       case AlertType.expired:
         cardColor = Colors.red;
@@ -424,18 +427,15 @@ class AlertDetailScreen extends StatelessWidget {
         statusText = 'Expired';
         break;
     }
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
           // Navigate to medicine detail
-          Navigator.pushNamed(
-            context, 
-            '/medicine-detail', 
-            arguments: {'id': medicine.id}
-          );
+          Navigator.pushNamed(context, '/medicine-detail',
+              arguments: {'id': medicine.id});
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -448,7 +448,7 @@ class AlertDetailScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: cardColor.withOpacity(0.1),
+                      color: cardColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(statusIcon, color: cardColor, size: 20),
@@ -465,7 +465,8 @@ class AlertDetailScreen extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if (medicine.batchNumber != null && medicine.batchNumber!.isNotEmpty)
+                        if (medicine.batchNumber != null &&
+                            medicine.batchNumber!.isNotEmpty)
                           Text(
                             'Batch: ${medicine.batchNumber}',
                             style: GoogleFonts.poppins(
@@ -477,9 +478,10 @@ class AlertDetailScreen extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: cardColor.withOpacity(0.1),
+                      color: cardColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -517,11 +519,14 @@ class AlertDetailScreen extends StatelessWidget {
                   Expanded(
                     child: _buildInfoChip(
                       alertType == AlertType.expired ? 'Expired' : 'Expiry',
-                      alertType == AlertType.expired 
+                      alertType == AlertType.expired
                           ? DateFormat('yyyy-MM-dd').format(medicine.expiryDate)
-                          : DateFormat('yyyy-MM-dd').format(medicine.expiryDate),
+                          : DateFormat('yyyy-MM-dd')
+                              .format(medicine.expiryDate),
                       Icons.calendar_today,
-                      alertType == AlertType.expired ? Colors.red : Colors.orange,
+                      alertType == AlertType.expired
+                          ? Colors.red
+                          : Colors.orange,
                     ),
                   ),
                 ],
@@ -549,11 +554,12 @@ class AlertDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoChip(String label, String value, IconData icon, Color color) {
+  Widget _buildInfoChip(
+      String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

@@ -30,10 +30,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
 
   Future<void> _loadSaleDetails() async {
     setState(() => _isLoading = true);
-    
+
     final saleProvider = Provider.of<SaleProvider>(context, listen: false);
     final saleGroup = await saleProvider.getSaleGroupById(widget.saleId);
-    
+
     setState(() {
       _saleGroup = saleGroup;
       _isLoading = false;
@@ -42,7 +42,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
 
   Future<void> _printReceipt() async {
     if (_saleGroup == null) return;
-    
+
     try {
       await PdfService.generateSaleReceipt(_saleGroup!);
     } catch (e) {
@@ -60,26 +60,26 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   // Helper method to clean sale ID and remove extra numbers
   String _getCleanSaleId() {
     String rawId = _saleGroup!.saleId;
-    
+
     // Remove any newline characters and take only the first line
     if (rawId.contains('\n')) {
       rawId = rawId.split('\n').first;
     }
-    
+
     // Remove any extra numbers after space
     if (rawId.contains(' ')) {
       rawId = rawId.split(' ').first;
     }
-    
+
     // Extract just the SALE-XXX pattern
     final match = RegExp(r'SALE-\d+').firstMatch(rawId);
     if (match != null) {
       return match.group(0)!;
     }
-    
+
     // Clean from garbage
-    if (rawId.contains('FIGHT') || 
-        rawId.contains('COVERED') || 
+    if (rawId.contains('FIGHT') ||
+        rawId.contains('COVERED') ||
         rawId.contains('FIXTELS') ||
         rawId.contains('INVOICE') ||
         rawId.contains('ILLIOTT') ||
@@ -88,7 +88,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         rawId.contains('924250')) {
       return 'SALE-${_saleGroup!.saleDate.millisecondsSinceEpoch}';
     }
-    
+
     return rawId;
   }
 
@@ -101,7 +101,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
           IconButton(
             icon: const Icon(Icons.print),
             onPressed: _printReceipt,
-            tooltip: 'Print Receipt',
+            tooltip: 'debugPrint Receipt',
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -146,12 +146,14 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   // FIX: Wrapped in Expanded to stop horizontal layout overflow
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'His Grace Drugshop',
@@ -174,11 +176,15 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 12), // Keeps space between title and chip
+                                  const SizedBox(
+                                      width:
+                                          12), // Keeps space between title and chip
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: AppConstants.primaryColor.withOpacity(0.1),
+                                      color: AppConstants.primaryColor
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -195,7 +201,6 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               const SizedBox(height: 24),
                               const Divider(),
                               const SizedBox(height: 16),
-
                               _buildInfoRow(
                                 'Date:',
                                 '${_saleGroup!.saleDate.day}/${_saleGroup!.saleDate.month}/${_saleGroup!.saleDate.year} ${_saleGroup!.saleDate.hour}:${_saleGroup!.saleDate.minute.toString().padLeft(2, '0')}',
@@ -218,7 +223,6 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                               const SizedBox(height: 16),
                               const Divider(),
                               const SizedBox(height: 16),
-
                               Row(
                                 children: [
                                   Expanded(
@@ -271,55 +275,56 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              
                               ..._saleGroup!.items.map((item) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        item.medicineName,
-                                        style: GoogleFonts.poppins(fontSize: 14),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 1,
-                                      child: Text(
-                                        '${item.quantity}',
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.poppins(fontSize: 14),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'UGX ${item.unitPrice.toStringAsFixed(0)}',
-                                        textAlign: TextAlign.right,
-                                        style: GoogleFonts.poppins(fontSize: 14),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'UGX ${item.totalPrice.toStringAsFixed(0)}',
-                                        textAlign: TextAlign.right,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            item.medicineName,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14),
+                                          ),
                                         ),
-                                      ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text(
+                                            '${item.quantity}',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'UGX ${item.unitPrice.toStringAsFixed(0)}',
+                                            textAlign: TextAlign.right,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'UGX ${item.totalPrice.toStringAsFixed(0)}',
+                                            textAlign: TextAlign.right,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              )),
-                              
+                                  )),
                               const SizedBox(height: 16),
                               const Divider(),
                               const SizedBox(height: 16),
-
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'TOTAL AMOUNT',
@@ -339,7 +344,6 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 ],
                               ),
                               const SizedBox(height: 24),
-
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
@@ -349,11 +353,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           'Total Items:',
-                                          style: GoogleFonts.poppins(fontSize: 12),
+                                          style:
+                                              GoogleFonts.poppins(fontSize: 12),
                                         ),
                                         Text(
                                           '${_saleGroup!.totalItems} units',
@@ -366,11 +372,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           'Medicine Types:',
-                                          style: GoogleFonts.poppins(fontSize: 12),
+                                          style:
+                                              GoogleFonts.poppins(fontSize: 12),
                                         ),
                                         Text(
                                           '${_saleGroup!.medicineCount} different',
@@ -384,9 +392,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   ],
                                 ),
                               ),
-
                               const SizedBox(height: 16),
-                              
                               Text(
                                 'Thank you for your purchase!',
                                 style: GoogleFonts.poppins(
@@ -395,7 +401,6 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
-                              
                               const SizedBox(height: 24),
                             ],
                           ),

@@ -23,12 +23,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _addressController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   int _currentStep = 0;
   bool _useEmailVerification = true;
-  
+
   // Password strength
   PasswordStrength _passwordStrength = PasswordStrength.weak;
 
@@ -45,7 +45,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _updatePasswordStrength() {
     setState(() {
-      _passwordStrength = Validators.checkPasswordStrength(_passwordController.text);
+      _passwordStrength =
+          Validators.checkPasswordStrength(_passwordController.text);
     });
   }
 
@@ -53,7 +54,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState!.validate()) {
       final nameParts = _nameController.text.trim().split(' ');
       final firstName = nameParts.first;
-      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+      final lastName =
+          nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
       final registerData = {
         'username': _emailController.text.split('@').first,
@@ -68,17 +70,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       };
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       final success = await authProvider.register(registerData);
-      
+
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registration successful! Please verify your account.'),
+            content:
+                Text('Registration successful! Please verify your account.'),
             backgroundColor: Colors.green,
           ),
         );
-        
+
         Navigator.pushNamed(
           context,
           '/otp-verification',
@@ -113,7 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 140, // Fixed height
                     margin: const EdgeInsets.only(bottom: 8),
                     child: Stack(
-                      clipBehavior: Clip.none, // Allow circles to overflow but clip the main content
+                      clipBehavior: Clip
+                          .none, // Allow circles to overflow but clip the main content
                       children: [
                         // Decorative background circles
                         Positioned(
@@ -123,7 +127,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withOpacity(0.1),
+                              color:
+                                  AppColors.primaryGreen.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -135,12 +140,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withOpacity(0.1),
+                              color:
+                                  AppColors.primaryGreen.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                           ),
                         ),
-                        
+
                         // Main illustration - Centered with less content
                         Center(
                           child: Column(
@@ -157,13 +163,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     end: Alignment.bottomRight,
                                     colors: [
                                       AppColors.primaryGreen,
-                                      AppColors.primaryGreen.withOpacity(0.7),
+                                      AppColors.primaryGreen
+                                          .withValues(alpha: 0.7),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primaryGreen.withOpacity(0.3),
+                                      color: AppColors.primaryGreen
+                                          .withValues(alpha: 0.3),
                                       blurRadius: 10,
                                       offset: const Offset(0, 3),
                                     ),
@@ -199,7 +207,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryGreen.withOpacity(0.1),
+                                  color: AppColors.primaryGreen
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Text(
@@ -224,9 +233,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Row(
                     children: [
                       _buildStepIndicator(1, 'Personal', _currentStep >= 0),
-                      Expanded(child: Divider(color: _currentStep >= 1 ? AppColors.primaryGreen : Colors.grey.shade300, thickness: 1)),
+                      Expanded(
+                          child: Divider(
+                              color: _currentStep >= 1
+                                  ? AppColors.primaryGreen
+                                  : Colors.grey.shade300,
+                              thickness: 1)),
                       _buildStepIndicator(2, 'Contact', _currentStep >= 1),
-                      Expanded(child: Divider(color: _currentStep >= 2 ? AppColors.primaryGreen : Colors.grey.shade300, thickness: 1)),
+                      Expanded(
+                          child: Divider(
+                              color: _currentStep >= 2
+                                  ? AppColors.primaryGreen
+                                  : Colors.grey.shade300,
+                              thickness: 1)),
                       _buildStepIndicator(3, 'Security', _currentStep >= 2),
                     ],
                   ),
@@ -254,7 +273,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Verification Method Toggle
                   if (_currentStep == 1)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.veryLightGreen,
                         borderRadius: BorderRadius.circular(10),
@@ -271,9 +291,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           Row(
                             children: [
-                              _buildVerificationMethod('Email', true, _useEmailVerification),
+                              _buildVerificationMethod(
+                                  'Email', true, _useEmailVerification),
                               const SizedBox(width: 10),
-                              _buildVerificationMethod('Phone', false, !_useEmailVerification),
+                              _buildVerificationMethod(
+                                  'Phone', false, !_useEmailVerification),
                             ],
                           ),
                         ],
@@ -335,7 +357,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 onChanged: (_) => _updatePasswordStrength(),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                    _obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -349,12 +373,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               // Password strength indicator
                               if (_passwordController.text.isNotEmpty)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: _passwordStrength.color.withOpacity(0.1),
+                                    color: _passwordStrength.color
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: _passwordStrength.color.withOpacity(0.3),
+                                      color: _passwordStrength.color
+                                          .withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(
@@ -406,19 +433,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                         _buildRequirementChip(
                                           'Uppercase',
-                                          RegExp(r'[A-Z]').hasMatch(_passwordController.text),
+                                          RegExp(r'[A-Z]').hasMatch(
+                                              _passwordController.text),
                                         ),
                                         _buildRequirementChip(
                                           'Lowercase',
-                                          RegExp(r'[a-z]').hasMatch(_passwordController.text),
+                                          RegExp(r'[a-z]').hasMatch(
+                                              _passwordController.text),
                                         ),
                                         _buildRequirementChip(
                                           'Number',
-                                          RegExp(r'[0-9]').hasMatch(_passwordController.text),
+                                          RegExp(r'[0-9]').hasMatch(
+                                              _passwordController.text),
                                         ),
                                         _buildRequirementChip(
                                           'Special',
-                                          RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(_passwordController.text),
+                                          RegExp(r'[!@#$%^&*(),.?":{}|<>]')
+                                              .hasMatch(
+                                                  _passwordController.text),
                                         ),
                                       ],
                                     ),
@@ -435,11 +467,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             obscureText: _obscureConfirmPassword,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _obscureConfirmPassword = !_obscureConfirmPassword;
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
                                 });
                               },
                             ),
@@ -473,7 +508,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 10),
-                              side: const BorderSide(color: AppColors.primaryGreen),
+                              side: const BorderSide(
+                                  color: AppColors.primaryGreen),
                             ),
                             child: Text(
                               'BACK',
@@ -500,7 +536,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               _handleRegister();
                             }
                           },
-                          isLoading: authProvider.isLoading && _currentStep == 2,
+                          isLoading:
+                              authProvider.isLoading && _currentStep == 2,
                           isFullWidth: true,
                         ),
                       ),
@@ -535,7 +572,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 4),
                 ],
               ),
@@ -561,7 +598,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: isMet ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+        color: isMet
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isMet ? Colors.green : Colors.grey,

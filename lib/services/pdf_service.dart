@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 // lib/services/pdf_service.dart - Add font handling at the top
 
 import 'package:flutter/services.dart';
@@ -10,7 +11,7 @@ import '../models/sale.dart';
 class PdfService {
   static const primaryColor = PdfColors.green700;
   static const secondaryColor = PdfColors.grey600;
-  
+
   static pw.Font? _regularFont;
   static pw.Font? _boldFont;
   static bool _fontsLoaded = false;
@@ -18,23 +19,25 @@ class PdfService {
   // Load custom font for Unicode support with fallback
   static Future<void> _loadFonts() async {
     if (_fontsLoaded) return;
-    
+
     try {
       // Try to load custom fonts, fall back to default if not found
-      final regularFontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+      final regularFontData =
+          await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
       _regularFont = pw.Font.ttf(regularFontData);
-      
+
       try {
-        final boldFontData = await rootBundle.load('assets/fonts/NotoSans-Bold.ttf');
+        final boldFontData =
+            await rootBundle.load('assets/fonts/NotoSans-Bold.ttf');
         _boldFont = pw.Font.ttf(boldFontData);
       } catch (e) {
-        print('Bold font loading failed, using regular font: $e');
+        debugPrint('Bold font loading failed, using regular font: $e');
         _boldFont = _regularFont;
       }
-      
+
       _fontsLoaded = true;
     } catch (e) {
-      print('Font loading failed, using default fonts: $e');
+      debugPrint('Font loading failed, using default fonts: $e');
       _fontsLoaded = true; // Don't try again
     }
   }
@@ -57,7 +60,7 @@ class PdfService {
 
   static Future<void> generateSaleReceipt(SaleGroup saleGroup) async {
     await _loadFonts();
-    
+
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -73,13 +76,14 @@ class PdfService {
 
     await Printing.sharePdf(
       bytes: await pdf.save(),
-      filename: 'receipt_${saleGroup.saleId}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
+      filename:
+          'receipt_${saleGroup.saleId}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
     );
   }
 
   static Future<Uint8List> generateSaleReceiptBytes(SaleGroup saleGroup) async {
     await _loadFonts();
-    
+
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -132,7 +136,8 @@ class PdfService {
                 children: [
                   pw.Text(
                     'RECEIPT',
-                    style: _getTextStyle(fontSize: 18, bold: true, color: primaryColor),
+                    style: _getTextStyle(
+                        fontSize: 18, bold: true, color: primaryColor),
                   ),
                   pw.Text(
                     'Receipt No: ${saleGroup.saleId}',
@@ -205,28 +210,33 @@ class PdfService {
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('👤 Cashier:', style: _getTextStyle(fontSize: 10, bold: true)),
-                pw.Text(saleGroup.staffName, style: _getTextStyle(fontSize: 10)),
+                pw.Text('👤 Cashier:',
+                    style: _getTextStyle(fontSize: 10, bold: true)),
+                pw.Text(saleGroup.staffName,
+                    style: _getTextStyle(fontSize: 10)),
               ],
             ),
-            if (saleGroup.customerName != null && saleGroup.customerName!.isNotEmpty)
+            if (saleGroup.customerName.isNotEmpty)
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
-                  pw.Text('👤 Customer:', style: _getTextStyle(fontSize: 10, bold: true)),
-                  pw.Text(saleGroup.customerName!, style: _getTextStyle(fontSize: 10)),
+                  pw.Text('👤 Customer:',
+                      style: _getTextStyle(fontSize: 10, bold: true)),
+                  pw.Text(saleGroup.customerName,
+                      style: _getTextStyle(fontSize: 10)),
                 ],
               ),
           ],
         ),
       ),
-      
+
       // Payment Method
       pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 15),
         child: pw.Row(
           children: [
-            pw.Text('Payment Method: ', style: _getTextStyle(fontSize: 10, bold: true)),
+            pw.Text('Payment Method: ',
+                style: _getTextStyle(fontSize: 10, bold: true)),
             pw.Text(
               saleGroup.paymentMethod ?? 'Cash',
               style: _getTextStyle(fontSize: 10),
@@ -234,10 +244,10 @@ class PdfService {
           ],
         ),
       ),
-      
+
       pw.Divider(),
       pw.SizedBox(height: 10),
-      
+
       // Items Header
       pw.Container(
         padding: const pw.EdgeInsets.all(8),
@@ -281,52 +291,52 @@ class PdfService {
           ],
         ),
       ),
-      
+
       pw.SizedBox(height: 5),
-      
+
       // Items List
       ...saleGroup.items.map((item) => pw.Padding(
-        padding: const pw.EdgeInsets.symmetric(vertical: 4),
-        child: pw.Row(
-          children: [
-            pw.Expanded(
-              flex: 4,
-              child: pw.Text(
-                item.medicineName,
-                style: _getTextStyle(fontSize: 10),
-              ),
+            padding: const pw.EdgeInsets.symmetric(vertical: 4),
+            child: pw.Row(
+              children: [
+                pw.Expanded(
+                  flex: 4,
+                  child: pw.Text(
+                    item.medicineName,
+                    style: _getTextStyle(fontSize: 10),
+                  ),
+                ),
+                pw.Expanded(
+                  flex: 1,
+                  child: pw.Text(
+                    '${item.quantity}',
+                    textAlign: pw.TextAlign.center,
+                    style: _getTextStyle(fontSize: 10),
+                  ),
+                ),
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Text(
+                    'UGX ${item.unitPrice.toStringAsFixed(0)}',
+                    textAlign: pw.TextAlign.right,
+                    style: _getTextStyle(fontSize: 10),
+                  ),
+                ),
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Text(
+                    'UGX ${item.totalPrice.toStringAsFixed(0)}',
+                    textAlign: pw.TextAlign.right,
+                    style: _getTextStyle(fontSize: 10, bold: true),
+                  ),
+                ),
+              ],
             ),
-            pw.Expanded(
-              flex: 1,
-              child: pw.Text(
-                '${item.quantity}',
-                textAlign: pw.TextAlign.center,
-                style: _getTextStyle(fontSize: 10),
-              ),
-            ),
-            pw.Expanded(
-              flex: 2,
-              child: pw.Text(
-                'UGX ${item.unitPrice.toStringAsFixed(0)}',
-                textAlign: pw.TextAlign.right,
-                style: _getTextStyle(fontSize: 10),
-              ),
-            ),
-            pw.Expanded(
-              flex: 2,
-              child: pw.Text(
-                'UGX ${item.totalPrice.toStringAsFixed(0)}',
-                textAlign: pw.TextAlign.right,
-                style: _getTextStyle(fontSize: 10, bold: true),
-              ),
-            ),
-          ],
-        ),
-      )),
-      
+          )),
+
       pw.Divider(),
       pw.SizedBox(height: 10),
-      
+
       // Summary
       pw.Container(
         margin: const pw.EdgeInsets.only(top: 10),
@@ -370,7 +380,8 @@ class PdfService {
                     ),
                     pw.Text(
                       'UGX ${saleGroup.totalAmount.toStringAsFixed(0)}',
-                      style: _getTextStyle(fontSize: 16, bold: true, color: primaryColor),
+                      style: _getTextStyle(
+                          fontSize: 16, bold: true, color: primaryColor),
                     ),
                   ],
                 ),
@@ -379,9 +390,9 @@ class PdfService {
           ],
         ),
       ),
-      
+
       pw.SizedBox(height: 20),
-      
+
       // Medicine Count Summary
       pw.Container(
         padding: const pw.EdgeInsets.all(10),
@@ -396,7 +407,8 @@ class PdfService {
               children: [
                 pw.Text(
                   '${saleGroup.medicineCount}',
-                  style: _getTextStyle(fontSize: 16, bold: true, color: primaryColor),
+                  style: _getTextStyle(
+                      fontSize: 16, bold: true, color: primaryColor),
                 ),
                 pw.Text('Medicine Types', style: _getTextStyle(fontSize: 10)),
               ],
@@ -406,7 +418,8 @@ class PdfService {
               children: [
                 pw.Text(
                   '${saleGroup.totalItems}',
-                  style: _getTextStyle(fontSize: 16, bold: true, color: primaryColor),
+                  style: _getTextStyle(
+                      fontSize: 16, bold: true, color: primaryColor),
                 ),
                 pw.Text('Total Units', style: _getTextStyle(fontSize: 10)),
               ],
@@ -429,9 +442,10 @@ class PdfService {
   // REPORT PDF GENERATION - FIXED VERSION
   // ============================================================
 
-  static Future<void> generateAndDownload(String title, pw.Widget content) async {
+  static Future<void> generateAndDownload(
+      String title, pw.Widget content) async {
     await _loadFonts();
-    
+
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -448,10 +462,11 @@ class PdfService {
     try {
       await Printing.sharePdf(
         bytes: await pdf.save(),
-        filename: '${title.toLowerCase().replaceAll(' ', '_')}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
+        filename:
+            '${title.toLowerCase().replaceAll(' ', '_')}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
       );
     } catch (e) {
-      print('Error sharing PDF: $e');
+      debugPrint('Error sharing PDF: $e');
       rethrow;
     }
   }
@@ -473,7 +488,8 @@ class PdfService {
             children: [
               pw.Text(
                 'His Grace Drugshop Management System',
-                style: _getTextStyle(fontSize: 18, bold: true, color: primaryColor),
+                style: _getTextStyle(
+                    fontSize: 18, bold: true, color: primaryColor),
               ),
               pw.SizedBox(height: 4),
               pw.Text(
@@ -502,21 +518,24 @@ class PdfService {
     );
   }
 
-  static pw.Widget buildSalesReportContent(Map<String, dynamic> report, List<dynamic> salesData) {
+  static pw.Widget buildSalesReportContent(
+      Map<String, dynamic> report, List<dynamic> salesData) {
     final summary = report['summary'] ?? {};
-    final limitedSales = salesData.length > 50 ? salesData.sublist(0, 50) : salesData;
-    
+    final limitedSales =
+        salesData.length > 50 ? salesData.sublist(0, 50) : salesData;
+
     final List<List<String>> salesRows = [];
     for (var sale in limitedSales) {
       salesRows.add([
-        sale['sale_date']?.toString().split('T')[0] ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        sale['sale_date']?.toString().split('T')[0] ??
+            DateFormat('yyyy-MM-dd').format(DateTime.now()),
         sale['customer_name']?.toString() ?? 'Walk-in',
         sale['medicine_name']?.toString() ?? '',
         '${sale['quantity'] ?? 0}',
         'UGX ${(sale['total_price'] ?? 0).toStringAsFixed(0)}',
       ]);
     }
-    
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -538,30 +557,36 @@ class PdfService {
             ],
           ),
         ),
-        
         pw.Container(
           margin: const pw.EdgeInsets.only(bottom: 20),
           child: pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryBox('Total Revenue', 'UGX ${(summary['total_revenue'] ?? 0).toStringAsFixed(0)}', PdfColors.green700),
-              _buildSummaryBox('Transactions', '${summary['total_transactions'] ?? 0}', PdfColors.blue700),
-              _buildSummaryBox('Average', 'UGX ${(summary['average_transaction'] ?? 0).toStringAsFixed(0)}', PdfColors.orange700),
-              _buildSummaryBox('Max Sale', 'UGX ${(summary['max_transaction'] ?? 0).toStringAsFixed(0)}', PdfColors.purple700),
+              _buildSummaryBox(
+                  'Total Revenue',
+                  'UGX ${(summary['total_revenue'] ?? 0).toStringAsFixed(0)}',
+                  PdfColors.green700),
+              _buildSummaryBox('Transactions',
+                  '${summary['total_transactions'] ?? 0}', PdfColors.blue700),
+              _buildSummaryBox(
+                  'Average',
+                  'UGX ${(summary['average_transaction'] ?? 0).toStringAsFixed(0)}',
+                  PdfColors.orange700),
+              _buildSummaryBox(
+                  'Max Sale',
+                  'UGX ${(summary['max_transaction'] ?? 0).toStringAsFixed(0)}',
+                  PdfColors.purple700),
             ],
           ),
         ),
-        
         pw.SizedBox(height: 20),
-        
-        pw.Text('Sales Transactions', style: _getTextStyle(fontSize: 16, bold: true)),
+        pw.Text('Sales Transactions',
+            style: _getTextStyle(fontSize: 16, bold: true)),
         pw.SizedBox(height: 10),
-        
         _buildTable(
           headers: ['Date', 'Customer', 'Medicine', 'Qty', 'Total'],
           rows: salesRows,
         ),
-        
         if (salesData.length > 50)
           pw.Padding(
             padding: const pw.EdgeInsets.only(top: 10),
@@ -579,8 +604,9 @@ class PdfService {
     final byCategory = report['by_category'] ?? [];
     final lowStockItems = report['low_stock_items'] ?? [];
     final expiredItems = report['expired_items'] ?? [];
-    
-    final limitedCategories = byCategory.length > 20 ? byCategory.sublist(0, 20) : byCategory;
+
+    final limitedCategories =
+        byCategory.length > 20 ? byCategory.sublist(0, 20) : byCategory;
     final List<List<String>> categoryRows = [];
     for (var category in limitedCategories) {
       categoryRows.add([
@@ -590,7 +616,7 @@ class PdfService {
         'UGX ${(category['avg_price'] ?? 0).toStringAsFixed(0)}',
       ]);
     }
-    
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -600,37 +626,46 @@ class PdfService {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _buildSummaryBox('Total Items', '${summary['total_medicines'] ?? 0}', PdfColors.blue700),
-              _buildSummaryBox('Total Value', 'UGX ${(summary['total_value'] ?? 0).toStringAsFixed(0)}', PdfColors.green700),
-              _buildSummaryBox('Low Stock', '${summary['low_stock'] ?? 0}', PdfColors.orange700),
-              _buildSummaryBox('Expired', '${summary['expired'] ?? 0}', PdfColors.red700),
+              _buildSummaryBox('Total Items',
+                  '${summary['total_medicines'] ?? 0}', PdfColors.blue700),
+              _buildSummaryBox(
+                  'Total Value',
+                  'UGX ${(summary['total_value'] ?? 0).toStringAsFixed(0)}',
+                  PdfColors.green700),
+              _buildSummaryBox('Low Stock', '${summary['low_stock'] ?? 0}',
+                  PdfColors.orange700),
+              _buildSummaryBox(
+                  'Expired', '${summary['expired'] ?? 0}', PdfColors.red700),
             ],
           ),
         ),
-        
         pw.SizedBox(height: 20),
-        
-        pw.Text('Category Breakdown', style: _getTextStyle(fontSize: 16, bold: true)),
+        pw.Text('Category Breakdown',
+            style: _getTextStyle(fontSize: 16, bold: true)),
         pw.SizedBox(height: 10),
-        
         _buildTable(
           headers: ['Category', 'Items', 'Total Value', 'Avg Price'],
           rows: categoryRows,
         ),
-        
         if (lowStockItems.isNotEmpty) ...[
           pw.SizedBox(height: 20),
-          pw.Text('Low Stock Items', style: _getTextStyle(fontSize: 16, bold: true, color: PdfColors.orange700)),
+          pw.Text('Low Stock Items',
+              style: _getTextStyle(
+                  fontSize: 16, bold: true, color: PdfColors.orange700)),
           pw.SizedBox(height: 10),
           _buildTable(
             headers: ['Medicine', 'Batch', 'Current Stock', 'Min Level'],
-            rows: lowStockItems.take(20).map<Map<String, dynamic>>((item) => item).toList()
+            rows: lowStockItems
+                .take(20)
+                .map<Map<String, dynamic>>((item) => item)
+                .toList()
                 .map((item) => [
-                  item['name']?.toString() ?? '',
-                  item['batch_number']?.toString() ?? '',
-                  '${item['quantity'] ?? 0}',
-                  '${item['min_stock_level'] ?? 0}',
-                ]).toList(),
+                      item['name']?.toString() ?? '',
+                      item['batch_number']?.toString() ?? '',
+                      '${item['quantity'] ?? 0}',
+                      '${item['min_stock_level'] ?? 0}',
+                    ])
+                .toList(),
           ),
         ],
       ],
@@ -639,7 +674,7 @@ class PdfService {
 
   static pw.Widget buildStaffReportContent(Map<String, dynamic> report) {
     final staffSummary = report['staff_summary'] ?? [];
-    
+
     final List<List<String>> staffRows = [];
     for (int i = 0; i < staffSummary.length; i++) {
       final staff = staffSummary[i];
@@ -651,13 +686,13 @@ class PdfService {
         '${staff['transaction_count'] ?? 0}',
       ]);
     }
-    
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('Staff Performance Summary', style: _getTextStyle(fontSize: 16, bold: true)),
+        pw.Text('Staff Performance Summary',
+            style: _getTextStyle(fontSize: 16, bold: true)),
         pw.SizedBox(height: 10),
-        
         _buildTable(
           headers: ['#', 'Staff Name', 'Role', 'Total Sales', 'Transactions'],
           rows: staffRows,
@@ -666,7 +701,8 @@ class PdfService {
     );
   }
 
-  static pw.Widget _buildSummaryBox(String title, String value, PdfColor color) {
+  static pw.Widget _buildSummaryBox(
+      String title, String value, PdfColor color) {
     PdfColor lightColor;
     if (color == PdfColors.green700) {
       lightColor = PdfColors.green100;
@@ -681,7 +717,7 @@ class PdfService {
     } else {
       lightColor = PdfColors.grey100;
     }
-    
+
     return pw.Container(
       width: 120,
       padding: const pw.EdgeInsets.all(10),
@@ -715,10 +751,11 @@ class PdfService {
     if (rows.isEmpty) {
       return pw.Container(
         padding: const pw.EdgeInsets.all(20),
-        child: pw.Text('No data available', style: _getTextStyle(fontSize: 12, color: PdfColors.grey600)),
+        child: pw.Text('No data available',
+            style: _getTextStyle(fontSize: 12, color: PdfColors.grey600)),
       );
     }
-    
+
     return pw.TableHelper.fromTextArray(
       headers: headers,
       data: rows,

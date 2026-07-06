@@ -33,11 +33,16 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
       if (query.isEmpty) {
         _filteredMedicines = widget.medicines;
       } else {
-        _filteredMedicines = widget.medicines.where((medicine) =>
-          medicine.name.toLowerCase().contains(query.toLowerCase()) ||
-          medicine.genericName.toLowerCase().contains(query.toLowerCase()) ||
-          medicine.batchNumber.toLowerCase().contains(query.toLowerCase())
-        ).toList();
+        _filteredMedicines = widget.medicines
+            .where((medicine) =>
+                medicine.name.toLowerCase().contains(query.toLowerCase()) ||
+                medicine.genericName
+                    .toLowerCase()
+                    .contains(query.toLowerCase()) ||
+                medicine.batchNumber
+                    .toLowerCase()
+                    .contains(query.toLowerCase()))
+            .toList();
       }
     });
   }
@@ -86,14 +91,15 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: medicine.isLowStock 
-                            ? Colors.orange 
-                            : medicine.isExpired 
-                                ? Colors.red 
+                        backgroundColor: medicine.isLowStock
+                            ? Colors.orange
+                            : medicine.isExpired
+                                ? Colors.red
                                 : Colors.green,
                         child: Text(
                           medicine.quantity.toString(),
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 12),
                         ),
                       ),
                       title: Text(
@@ -104,7 +110,8 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Batch: ${medicine.batchNumber}'),
-                          Text('Stock: ${medicine.quantity} | Price: UGX ${medicine.retailPrice.toStringAsFixed(0)}'),
+                          Text(
+                              'Stock: ${medicine.quantity} | Price: UGX ${medicine.retailPrice.toStringAsFixed(0)}'),
                         ],
                       ),
                       trailing: medicine.isLowStock
@@ -115,13 +122,15 @@ class _MedicineSearchDialogState extends State<MedicineSearchDialog> {
                       onTap: () {
                         if (medicine.quantity <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Medicine out of stock')),
+                            const SnackBar(
+                                content: Text('Medicine out of stock')),
                           );
                           return;
                         }
                         if (medicine.isExpired) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Medicine is expired')),
+                            const SnackBar(
+                                content: Text('Medicine is expired')),
                           );
                           return;
                         }

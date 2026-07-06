@@ -8,7 +8,7 @@ class AuthResponse {
   final bool? requiresVerification;
   final String? email;
   final String? phone;
-  final String? token; 
+  final String? token;
 
   AuthResponse({
     this.isSuccess = false,

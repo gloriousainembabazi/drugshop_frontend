@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+// lib/services/auth_service.dart
 import '../models/user.dart';
 import '../models/auth_response.dart';
 import 'api_service.dart';
@@ -6,59 +8,58 @@ import 'storage_service.dart';
 class AuthService {
   final ApiService _apiService;
   final StorageService _storageService;
-  
+
   AuthService(this._apiService, this._storageService);
 
-  // LOGIN METHOD - handles nested response from ApiService with verbose safety diagnostics
-  Future<AuthResponse> login(String email, String password) async {
+  Future<AuthResponse> login(String username, String password) async {
     try {
-      print("🔐 LOGIN ATTEMPT: $email");
-      
+      debugPrint("🔐 LOGIN ATTEMPT: $username");
+
       final response = await _apiService.login(
-        username: email,
+        username: username,
         password: password,
       );
-      
-      print("📦 RAW BACKEND RESPONSE MAP: $response");
 
-      // Check if the outer response was successful
-      if (response != null && response['success'] == true) {
-        // The actual data is inside response['data']
+      debugPrint("📦 RAW BACKEND RESPONSE MAP: $response");
+
+      if (response['success'] == true) {
         final data = response['data'];
-        print("📦 EXTRACTED INNER DATA PAYLOAD: $data");
-        
+        debugPrint("📦 EXTRACTED INNER DATA PAYLOAD: $data");
+
         if (data is Map<String, dynamic>) {
-          // Verify a valid auth token key is present in the map block
           if (data.containsKey('token') && data['token'] != null) {
-            final String token = data['token'].toString(); // Safe stringify conversion
+            final String token = data['token'].toString();
             final dynamic userData = data['user'];
-            
-            print("🔑 Token extracted successfully: $token");
-            print("👤 User data block found: $userData");
-            
+
+            debugPrint("🔑 Token extracted successfully: $token");
+            debugPrint("👤 User data block found: $userData");
+
             if (token.isNotEmpty) {
               await _storageService.saveToken(token);
-              print("💾 Token saved to storage service successfully.");
+              debugPrint("💾 Token saved to storage service successfully.");
             }
-            
+
             if (userData != null && userData is Map<String, dynamic>) {
               try {
-                print("🔄 Attempting to parse User model via User.fromJson...");
+                debugPrint(
+                    "🔄 Attempting to parse User model via User.fromJson...");
                 final user = User.fromJson(userData);
-                
-                print("💾 Attempting to save User object to storage layer...");
-                await _storageService.saveUser(user);  // Pass User object directly
-                
-                print("✅ All parsing succeeded! Returning success state to provider.");
+
+                debugPrint(
+                    "💾 Attempting to save User object to storage layer...");
+                await _storageService.saveUser(user);
+
+                debugPrint(
+                    "✅ All parsing succeeded! Returning success state to provider.");
                 return AuthResponse(
                   isSuccess: true,
                   user: user,
                   token: token,
                 );
               } catch (modelError) {
-                // Catches fields parsing crashes inside lib/models/user.dart
-                print("❌ CRITICAL: Your User.fromJson model initialization crashed!");
-                print("The exact model breakdown error is: $modelError");
+                debugPrint(
+                    "❌ CRITICAL: User.fromJson model initialization crashed!");
+                debugPrint("The exact model breakdown error is: $modelError");
                 return AuthResponse(
                   isSuccess: false,
                   error: "User model parsing failed: $modelError",
@@ -66,10 +67,9 @@ class AuthService {
               }
             }
           }
-          
-          // Check for verification requirement
+
           if (data['requires_verification'] == true) {
-            print("⚠️ Account requires verification flow step.");
+            debugPrint("⚠️ Account requires verification flow step.");
             return AuthResponse(
               isSuccess: false,
               error: data['error'] ?? 'Verification required',
@@ -77,28 +77,25 @@ class AuthService {
               email: data['email'],
             );
           }
-          
-          // Handle explicit errors inside nested response data payload
+
           return AuthResponse(
             isSuccess: false,
             error: data['error'] ?? 'Login failed',
           );
         }
-        
+
         return AuthResponse(
           isSuccess: false,
           error: 'Invalid response data format layer',
         );
       } else {
-        // Outer response failed (network validation error or invalid credentials structural map)
         return AuthResponse(
           isSuccess: false,
-          error: response?['error'] ?? 'Login failed',
+          error: response['error'] ?? 'Login failed',
         );
       }
     } catch (e) {
-      // Catches top-level framework runtime exceptions, network timeouts, or type conversion faults
-      print("❌ GENERAL LOGIN FUNCTION EXCEPTION: $e");
+      debugPrint("❌ GENERAL LOGIN FUNCTION EXCEPTION: $e");
       return AuthResponse(
         isSuccess: false,
         error: 'System Exception: ${e.toString()}',
@@ -106,25 +103,24 @@ class AuthService {
     }
   }
 
-  // REGISTER METHOD
   Future<AuthResponse> register(Map<String, dynamic> userData) async {
     try {
-      print("📝 REGISTER ATTEMPT: ${userData['email']}");
-      
+      debugPrint("📝 REGISTER ATTEMPT: ${userData['email']}");
+
       final response = await _apiService.register(userData);
-      
-      print("📦 REGISTER RESPONSE: $response");
-      
+
+      debugPrint("📦 REGISTER RESPONSE: $response");
+
       if (response['success'] == true) {
         final data = response['data'];
-        
+
         if (data is Map<String, dynamic>) {
           if (data['success'] == true) {
             User? user;
             if (data['user'] != null) {
               user = User.fromJson(data['user']);
             }
-            
+
             return AuthResponse(
               isSuccess: true,
               user: user,
@@ -136,7 +132,7 @@ class AuthService {
             );
           }
         }
-        
+
         return AuthResponse(
           isSuccess: true,
         );
@@ -147,7 +143,7 @@ class AuthService {
         );
       }
     } catch (e) {
-      print("❌ REGISTER ERROR: $e");
+      debugPrint("❌ REGISTER ERROR: $e");
       return AuthResponse(
         isSuccess: false,
         error: 'Network error: ${e.toString()}',
@@ -155,62 +151,6 @@ class AuthService {
     }
   }
 
-  // VERIFY OTP METHOD
-  Future<AuthResponse> verifyOtp({
-    String? email,
-    String? phone,
-    required String otp,
-    required String otpType,
-  }) async {
-    try {
-      final Map<String, dynamic> data = {
-        'otp': otp,
-        'otp_type': otpType,
-      };
-      
-      if (otpType == 'email' && email != null) {
-        data['email'] = email;
-      } else if (otpType == 'phone' && phone != null) {
-        data['phone'] = phone;
-      }
-      
-      print("🔐 VERIFY OTP DATA: $data");
-      
-      final response = await _apiService.post('/api/auth/verify-otp/', data);
-      
-      print("📦 VERIFY OTP RESPONSE: $response");
-      
-      if (response['success'] == true) {
-        final responseData = response['data'];
-        
-        if (responseData is Map<String, dynamic>) {
-          if (responseData['success'] == true) {
-            return AuthResponse(isSuccess: true);
-          } else {
-            return AuthResponse(
-              isSuccess: false,
-              error: responseData['error'] ?? 'Invalid OTP',
-            );
-          }
-        }
-        
-        return AuthResponse(isSuccess: true);
-      } else {
-        return AuthResponse(
-          isSuccess: false,
-          error: response['error'] ?? 'Invalid OTP',
-        );
-      }
-    } catch (e) {
-      print("❌ VERIFY OTP ERROR: $e");
-      return AuthResponse(
-        isSuccess: false,
-        error: 'Network error: ${e.toString()}',
-      );
-    }
-  }
-
-  // SEND OTP METHOD
   Future<AuthResponse> sendOtp({
     String? email,
     String? phone,
@@ -222,14 +162,20 @@ class AuthService {
       };
       if (email != null) body['email'] = email;
       if (phone != null) body['phone'] = phone;
-      
-      print("📧 SEND OTP DATA: $body");
-      
-      final response = await _apiService.post('/api/auth/send-otp/', body);
-      
+
+      debugPrint("📧 SEND OTP DATA: $body");
+
+      final response = await _apiService.sendOtp(
+        email: email,
+        phone: phone,
+        otpType: otpType,
+      );
+
+      debugPrint("📦 SEND OTP RESPONSE: $response");
+
       if (response['success'] == true) {
         final responseData = response['data'];
-        
+
         if (responseData is Map<String, dynamic>) {
           if (responseData['success'] == true) {
             return AuthResponse(isSuccess: true);
@@ -240,7 +186,7 @@ class AuthService {
             );
           }
         }
-        
+
         return AuthResponse(
           isSuccess: true,
         );
@@ -251,7 +197,7 @@ class AuthService {
         );
       }
     } catch (e) {
-      print("❌ SEND OTP ERROR: $e");
+      debugPrint("❌ SEND OTP ERROR: $e");
       return AuthResponse(
         isSuccess: false,
         error: 'Network error: ${e.toString()}',
@@ -259,27 +205,84 @@ class AuthService {
     }
   }
 
-  // FORGOT PASSWORD METHOD
-  Future<AuthResponse> forgotPassword(String email) async {
+  Future<AuthResponse> verifyOtp({
+    String? email,
+    String? phone,
+    required String otp,
+    required String otpType,
+  }) async {
     try {
-      final response = await _apiService.post('/api/auth/forgot-password/', {
-        'email': email,
-      });
-      
+      final Map<String, dynamic> data = {
+        'otp': otp,
+        'otp_type': otpType,
+      };
+
+      if (otpType == 'email' && email != null) {
+        data['email'] = email;
+      } else if (otpType == 'phone' && phone != null) {
+        data['phone'] = phone;
+      }
+
+      debugPrint("🔐 VERIFY OTP DATA: $data");
+
+      final response = await _apiService.verifyOtp(
+        email: email,
+        phone: phone,
+        otp: otp,
+        otpType: otpType,
+      );
+
+      debugPrint("📦 VERIFY OTP RESPONSE: $response");
+
       if (response['success'] == true) {
         final responseData = response['data'];
-        
+
         if (responseData is Map<String, dynamic>) {
           if (responseData['success'] == true) {
             return AuthResponse(isSuccess: true);
           } else {
             return AuthResponse(
               isSuccess: false,
-              error: responseData['error'] ?? 'Failed to send reset instructions',
+              error: responseData['error'] ?? 'Invalid OTP',
             );
           }
         }
-        
+
+        return AuthResponse(isSuccess: true);
+      } else {
+        return AuthResponse(
+          isSuccess: false,
+          error: response['error'] ?? 'Invalid OTP',
+        );
+      }
+    } catch (e) {
+      debugPrint("❌ VERIFY OTP ERROR: $e");
+      return AuthResponse(
+        isSuccess: false,
+        error: 'Network error: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<AuthResponse> forgotPassword(String email) async {
+    try {
+      final response = await _apiService.forgotPassword(email);
+
+      if (response['success'] == true) {
+        final responseData = response['data'];
+
+        if (responseData is Map<String, dynamic>) {
+          if (responseData['success'] == true) {
+            return AuthResponse(isSuccess: true);
+          } else {
+            return AuthResponse(
+              isSuccess: false,
+              error:
+                  responseData['error'] ?? 'Failed to send reset instructions',
+            );
+          }
+        }
+
         return AuthResponse(isSuccess: true);
       } else {
         return AuthResponse(
@@ -288,7 +291,7 @@ class AuthService {
         );
       }
     } catch (e) {
-      print("❌ FORGOT PASSWORD ERROR: $e");
+      debugPrint("❌ FORGOT PASSWORD ERROR: $e");
       return AuthResponse(
         isSuccess: false,
         error: 'Network error: ${e.toString()}',
@@ -296,29 +299,29 @@ class AuthService {
     }
   }
 
-  // RESET PASSWORD METHOD
-  Future<bool> resetPasswordWithOtp(String email, String otp, String newPassword) async {
+  Future<bool> resetPasswordWithOtp(
+      String email, String otp, String newPassword) async {
     try {
-      final response = await _apiService.post('/api/auth/reset-password/', {
-        'email': email,
-        'otp': otp,
-        'new_password': newPassword,
-        'confirm_password': newPassword,
-      });
-      
+      final response = await _apiService.resetPassword(
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+        confirmPassword: newPassword,
+      );
+
       if (response['success'] == true) {
         final responseData = response['data'];
-        
+
         if (responseData is Map<String, dynamic>) {
           return responseData['success'] == true;
         }
-        
+
         return true;
       }
-      
+
       return false;
     } catch (e) {
-      print("❌ RESET PASSWORD ERROR: $e");
+      debugPrint("❌ RESET PASSWORD ERROR: $e");
       return false;
     }
   }

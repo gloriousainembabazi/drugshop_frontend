@@ -44,7 +44,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       torchEnabled: false,
       detectionSpeed: DetectionSpeed.normal,
     );
-    
+
     // Request permissions if needed
     await _scannerController?.start();
     setState(() {});
@@ -75,13 +75,13 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   }
 
   Future<void> _searchMedicineByBarcode(String code) async {
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
-    
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
+
     // Search for medicine with this barcode
-    final medicines = medicineProvider.medicines.where(
-      (m) => m.barcode == code
-    ).toList();
-    
+    final medicines =
+        medicineProvider.medicines.where((m) => m.barcode == code).toList();
+
     if (medicines.isNotEmpty) {
       if (mounted) {
         _showScannedResult(context, code, medicines.first);
@@ -109,7 +109,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -188,7 +188,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -231,15 +231,18 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Batch:', style: GoogleFonts.poppins(fontSize: 13)),
-                          Text(medicine.batchNumber, style: GoogleFonts.poppins(fontSize: 13)),
+                          Text('Batch:',
+                              style: GoogleFonts.poppins(fontSize: 13)),
+                          Text(medicine.batchNumber,
+                              style: GoogleFonts.poppins(fontSize: 13)),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Expiry:', style: GoogleFonts.poppins(fontSize: 13)),
+                          Text('Expiry:',
+                              style: GoogleFonts.poppins(fontSize: 13)),
                           Text(
                             '${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}',
                             style: GoogleFonts.poppins(fontSize: 13),
@@ -250,17 +253,21 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Stock:', style: GoogleFonts.poppins(fontSize: 13)),
-                          Text('${medicine.quantity} units', style: GoogleFonts.poppins(fontSize: 13)),
+                          Text('Stock:',
+                              style: GoogleFonts.poppins(fontSize: 13)),
+                          Text('${medicine.quantity} units',
+                              style: GoogleFonts.poppins(fontSize: 13)),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Price:', style: GoogleFonts.poppins(fontSize: 13)),
-                          Text('UGX ${medicine.retailPrice.toStringAsFixed(0)}', 
-                               style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold)),
+                          Text('Price:',
+                              style: GoogleFonts.poppins(fontSize: 13)),
+                          Text('UGX ${medicine.retailPrice.toStringAsFixed(0)}',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],
@@ -512,10 +519,14 @@ class _ScannerOverlayShape extends ShapeBorder {
     canvas.drawLine(Offset(left, top), Offset(left, top + 40), cornerPaint);
     canvas.drawLine(Offset(right - 40, top), Offset(right, top), cornerPaint);
     canvas.drawLine(Offset(right, top), Offset(right, top + 40), cornerPaint);
-    canvas.drawLine(Offset(left, bottom - 40), Offset(left, bottom), cornerPaint);
-    canvas.drawLine(Offset(left, bottom), Offset(left + 40, bottom), cornerPaint);
-    canvas.drawLine(Offset(right - 40, bottom), Offset(right, bottom), cornerPaint);
-    canvas.drawLine(Offset(right, bottom - 40), Offset(right, bottom), cornerPaint);
+    canvas.drawLine(
+        Offset(left, bottom - 40), Offset(left, bottom), cornerPaint);
+    canvas.drawLine(
+        Offset(left, bottom), Offset(left + 40, bottom), cornerPaint);
+    canvas.drawLine(
+        Offset(right - 40, bottom), Offset(right, bottom), cornerPaint);
+    canvas.drawLine(
+        Offset(right, bottom - 40), Offset(right, bottom), cornerPaint);
   }
 
   @override

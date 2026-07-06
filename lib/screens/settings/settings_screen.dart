@@ -7,7 +7,6 @@ import '../../providers/settings_provider.dart';
 import '../../models/theme_model.dart';
 import '../../widgets/custom_button.dart';
 import '../../utils/constants.dart';
-import '../../services/translation_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,9 +16,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _t(String key) {
-    return TranslationService().translate(key);
-  }
+  // Removed unused _t function
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +26,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_t('Settings')),
+        title: const Text('Settings'),
       ),
       body: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Profile Section - Visible to all users
-              _buildSectionHeader(_t('Profile')),
+              // Profile Section
+              _buildSectionHeader('Profile'),
               Card(
                 child: ListTile(
                   leading: CircleAvatar(
@@ -67,228 +64,164 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const SizedBox(height: 24),
 
-              // Account Settings - Visible to all users (self-management)
-              _buildSectionHeader(_t('Account Settings')),
+              // Account Settings
+              _buildSectionHeader('Account Settings'),
               ListTile(
                 leading: const Icon(Icons.person_outline),
-                title: Text(
-                  _t('Change Username'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Change Username', style: GoogleFonts.poppins()),
                 subtitle: Text(
-                  '${_t('Current')}: ${user?.username}',
+                  'Current: ${user?.username}',
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showChangeUsernameDialog(context);
-                },
+                onTap: () => _showChangeUsernameDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.email_outlined),
-                title: Text(
-                  _t('Change Email'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Change Email', style: GoogleFonts.poppins()),
                 subtitle: Text(
-                  '${_t('Current')}: ${user?.email}',
+                  'Current: ${user?.email}',
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showChangeEmailDialog(context);
-                },
+                onTap: () => _showChangeEmailDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.phone_outlined),
-                title: Text(
-                  _t('Change Phone'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Change Phone', style: GoogleFonts.poppins()),
                 subtitle: Text(
-                  user?.phone?.isNotEmpty == true 
-                      ? '${_t('Current')}: ${user?.phone}' 
-                      : _t('Not set'),
+                  user?.phone?.isNotEmpty == true
+                      ? 'Current: ${user?.phone}'
+                      : 'Not set',
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showChangePhoneDialog(context);
-                },
+                onTap: () => _showChangePhoneDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.lock_outline),
-                title: Text(
-                  _t('Change Password'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Change Password', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  Navigator.pushNamed(context, '/change-password');
-                },
+                onTap: () => Navigator.pushNamed(context, '/change-password'),
               ),
 
               const SizedBox(height: 16),
 
               // Staff Management - Admin Only
               if (isAdmin) ...[
-                _buildSectionHeader(_t('Staff Management')),
+                _buildSectionHeader('Staff Management'),
                 ListTile(
-                  leading: const Icon(Icons.people_outline, color: AppColors.primaryGreen),
+                  leading: const Icon(Icons.people_outline,
+                      color: AppColors.primaryGreen),
                   title: Text(
-                    _t('Manage Staff'),
+                    'Manage Staff',
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryGreen,
                     ),
                   ),
                   subtitle: Text(
-                    _t('Add, edit, or remove staff members'),
+                    'Add, edit, or remove staff members',
                     style: GoogleFonts.poppins(fontSize: 12),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/staff');
-                  },
+                  onTap: () => Navigator.pushNamed(context, '/staff'),
                 ),
                 const SizedBox(height: 16),
               ],
 
               // Appearance Section
-              _buildSectionHeader(_t('Appearance')),
+              _buildSectionHeader('Appearance'),
               _buildThemeSelector(settingsProvider),
 
               const SizedBox(height: 16),
 
               // Language Section
-              _buildSectionHeader(_t('Language & Region')),
+              _buildSectionHeader('Language & Region'),
               ListTile(
                 leading: const Icon(Icons.language),
-                title: Text(
-                  _t('Language'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Language', style: GoogleFonts.poppins()),
                 subtitle: Text(
                   settingsProvider.language,
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showLanguageDialog(context, settingsProvider);
-                },
+                onTap: () => _showLanguageDialog(context, settingsProvider),
               ),
 
               const SizedBox(height: 16),
 
               // Data & Backup
-              _buildSectionHeader(_t('Data & Backup')),
+              _buildSectionHeader('Data & Backup'),
               _buildSwitchTile(
-                _t('Auto Backup'),
-                _t('Automatically backup your data'),
+                'Auto Backup',
+                'Automatically backup your data',
                 Icons.backup_outlined,
                 settingsProvider.autoBackup,
                 settingsProvider.toggleAutoBackup,
               ),
               ListTile(
                 leading: const Icon(Icons.backup),
-                title: Text(
-                  _t('Backup Now'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Backup Now', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showBackupDialog(context);
-                },
+                onTap: () => _showBackupDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.restore),
-                title: Text(
-                  _t('Restore Data'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Restore Data', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showRestoreDialog(context);
-                },
+                onTap: () => _showRestoreDialog(context),
               ),
 
               const SizedBox(height: 16),
 
-              // About Section with Complete Details
-              _buildSectionHeader(_t('About')),
+              // About Section
+              _buildSectionHeader('About'),
               ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: Text(
-                  _t('App Version'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('App Version', style: GoogleFonts.poppins()),
                 subtitle: const Text('1.0.0 (Build 2024.03.11)'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showVersionDialog(context);
-                },
+                onTap: () => _showVersionDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.description_outlined),
-                title: Text(
-                  _t('Terms of Service'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Terms of Service', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showTermsDialog(context);
-                },
+                onTap: () => _showTermsDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.privacy_tip_outlined),
-                title: Text(
-                  _t('Privacy Policy'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Privacy Policy', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showPrivacyDialog(context);
-                },
+                onTap: () => _showPrivacyDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.security),
-                title: Text(
-                  _t('Security & Compliance'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title:
+                    Text('Security & Compliance', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showSecurityDialog(context);
-                },
+                onTap: () => _showSecurityDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.support_agent),
-                title: Text(
-                  _t('Support & Help'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title: Text('Support & Help', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showSupportDialog(context);
-                },
+                onTap: () => _showSupportDialog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.code),
-                title: Text(
-                  _t('Open Source Licenses'),
-                  style: GoogleFonts.poppins(),
-                ),
+                title:
+                    Text('Open Source Licenses', style: GoogleFonts.poppins()),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  _showLicensesDialog(context);
-                },
+                onTap: () => _showLicensesDialog(context),
               ),
 
               const SizedBox(height: 16),
 
               // Logout Button
               CustomButton(
-                text: _t('LOGOUT'),
+                text: 'LOGOUT',
                 onPressed: () async {
                   final confirm = await _showLogoutDialog(context);
                   if (confirm) {
@@ -353,13 +286,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeOption(AppTheme theme, bool isSelected, SettingsProvider provider) {
+  Widget _buildThemeOption(
+      AppTheme theme, bool isSelected, SettingsProvider provider) {
     return ListTile(
       leading: Icon(theme.icon),
-      title: Text(
-        _t(theme.displayName),
-        style: GoogleFonts.poppins(),
-      ),
+      title: Text(theme.displayName, style: GoogleFonts.poppins()),
       trailing: isSelected
           ? const Icon(Icons.check_circle, color: AppColors.primaryGreen)
           : null,
@@ -379,14 +310,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Card(
       child: SwitchListTile(
         secondary: Icon(icon),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.poppins(fontSize: 12),
-        ),
+        title: Text(title, style: GoogleFonts.poppins()),
+        subtitle: Text(subtitle, style: GoogleFonts.poppins(fontSize: 12)),
         value: value,
         onChanged: (_) => onTap(),
         activeThumbColor: AppColors.primaryGreen,
@@ -397,44 +322,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Dialog Methods
   void _showChangeUsernameDialog(BuildContext context) {
     final TextEditingController controller = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Change Username')),
+        title: const Text('Change Username'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: InputDecoration(
-                labelText: _t('New Username'),
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                labelText: 'New Username',
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              _t('Username must be unique and at least 3 characters'),
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+            const Text(
+              'Username must be unique and at least 3 characters',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CANCEL')),
+            child: const Text('CANCEL'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_t('Username updated successfully')),
+                const SnackBar(
+                  content: Text('Username updated successfully'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: Text(_t('UPDATE')),
+            child: const Text('UPDATE'),
           ),
         ],
       ),
@@ -443,45 +368,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showChangeEmailDialog(BuildContext context) {
     final TextEditingController controller = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Change Email')),
+        title: const Text('Change Email'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: InputDecoration(
-                labelText: _t('New Email'),
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                labelText: 'New Email',
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
-            Text(
-              _t('A verification email will be sent to your new address'),
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+            const Text(
+              'A verification email will be sent to your new address',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CANCEL')),
+            child: const Text('CANCEL'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_t('Verification email sent')),
+                const SnackBar(
+                  content: Text('Verification email sent'),
                   backgroundColor: Colors.blue,
                 ),
               );
             },
-            child: Text(_t('SEND VERIFICATION')),
+            child: const Text('SEND VERIFICATION'),
           ),
         ],
       ),
@@ -490,19 +415,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showChangePhoneDialog(BuildContext context) {
     final TextEditingController controller = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Change Phone Number')),
+        title: const Text('Change Phone Number'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
-              decoration: InputDecoration(
-                labelText: _t('New Phone Number'),
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                labelText: 'New Phone Number',
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
             ),
@@ -511,19 +436,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CANCEL')),
+            child: const Text('CANCEL'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_t('Phone number updated successfully')),
+                const SnackBar(
+                  content: Text('Phone number updated successfully'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: Text(_t('UPDATE')),
+            child: const Text('UPDATE'),
           ),
         ],
       ),
@@ -534,43 +459,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('App Version')),
+        title: const Text('App Version'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow(_t('Version'), '1.0.0'),
-            _buildInfoRow(_t('Build'), '2024.03.11'),
-            _buildInfoRow(_t('Flutter'), '3.16.0'),
-            _buildInfoRow(_t('Dart'), '3.2.0'),
+            _buildInfoRow('Version', '1.0.0'),
+            _buildInfoRow('Build', '2026.03.11'),
+            _buildInfoRow('Flutter', '3.16.0'),
+            _buildInfoRow('Dart', '3.2.0'),
             const Divider(),
             const SizedBox(height: 8),
-            Text(
-              _t('Release Date: March 11, 2024'),
-              style: GoogleFonts.poppins(fontSize: 12),
+            const Text(
+              'Release Date: March 11, 2026',
+              style: TextStyle(fontSize: 12),
             ),
-            Text(
-              _t('Compatibility: Android 5.0+ / iOS 12.0+'),
-              style: GoogleFonts.poppins(fontSize: 12),
+            const Text(
+              'Compatibility: Android 5.0+ / iOS 12.0+',
+              style: TextStyle(fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CLOSE')),
+            child: const Text('CLOSE'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_t('You have the latest version')),
+                const SnackBar(
+                  content: Text('You have the latest version'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: Text(_t('CHECK UPDATES')),
+            child: const Text('CHECK UPDATES'),
           ),
         ],
       ),
@@ -581,7 +506,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Terms of Service')),
+        title: const Text('Terms of Service'),
         content: SizedBox(
           width: double.maxFinite,
           height: 400,
@@ -589,83 +514,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Last Updated: March 11, 2024',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '1. Acceptance of Terms',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'By accessing and using His Grace Drugshop Management System, you agree to be bound by these Terms of Service and all applicable laws and regulations.',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '2. User Accounts',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   '• You are responsible for maintaining the confidentiality of your account\n'
                   '• You are responsible for all activities under your account\n'
                   '• You must notify us immediately of any unauthorized use\n'
                   '• We reserve the right to terminate accounts for violations',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '3. Data Accuracy',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'You are responsible for ensuring the accuracy of all data entered into the system, including medicine information, sales records, and inventory counts.',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '4. Prohibited Activities',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   '• Selling expired or counterfeit medicines\n'
                   '• Manipulating inventory records\n'
                   '• Unauthorized access to other accounts\n'
                   '• Using the system for illegal purposes',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '5. Limitation of Liability',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'His Grace Drugshop shall not be liable for any indirect, incidental, or consequential damages arising from the use of this system.',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
               ],
             ),
@@ -674,13 +581,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CLOSE')),
+            child: const Text('CLOSE'),
           ),
           TextButton(
             onPressed: () {
               _launchUrl('https://www.HisGraceDrugshop.com/terms');
             },
-            child: Text(_t('VIEW ONLINE')),
+            child: const Text('VIEW ONLINE'),
           ),
         ],
       ),
@@ -691,7 +598,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Privacy Policy')),
+        title: const Text('Privacy Policy'),
         content: SizedBox(
           width: double.maxFinite,
           height: 400,
@@ -699,83 +606,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Last Updated: March 11, 2024',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Information We Collect',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   '• Personal information (name, email, phone)\n'
                   '• Login credentials (encrypted)\n'
                   '• Pharmacy inventory and sales data\n'
                   '• Usage statistics and preferences',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'How We Use Your Information',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   '• To provide and maintain our service\n'
                   '• To notify you about changes\n'
                   '• To provide customer support\n'
                   '• To gather analysis for improvement',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Data Security',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'We implement industry-standard security measures including encryption, secure authentication, and regular security audits to protect your data.',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Data Retention',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'We retain your data for as long as your account is active. You may request data deletion by contacting support.',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Third Party Services',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'We may use third-party services for analytics and crash reporting. These services have their own privacy policies.',
-                  style: GoogleFonts.poppins(fontSize: 14),
+                  style: TextStyle(fontSize: 14),
                 ),
               ],
             ),
@@ -784,13 +673,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CLOSE')),
+            child: const Text('CLOSE'),
           ),
           TextButton(
             onPressed: () {
               _launchUrl('https://www.HisGraceDrugshop.com/privacy');
             },
-            child: Text(_t('VIEW ONLINE')),
+            child: const Text('VIEW ONLINE'),
           ),
         ],
       ),
@@ -801,20 +690,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Security & Compliance')),
+        title: const Text('Security & Compliance'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow(_t('Encryption'), 'AES-256'),
-            _buildInfoRow(_t('Authentication'), 'Token-based'),
-            _buildInfoRow(_t('Session Timeout'), '30 minutes'),
-            _buildInfoRow(_t('Password Policy'), 'Minimum 8 characters'),
+            _buildInfoRow('Encryption', 'AES-256'),
+            _buildInfoRow('Authentication', 'Token-based'),
+            _buildInfoRow('Session Timeout', '30 minutes'),
+            _buildInfoRow('Password Policy', 'Minimum 8 characters'),
             const Divider(),
             const SizedBox(height: 8),
-            Text(
-              _t('Compliance Standards:'),
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            const Text(
+              'Compliance Standards:',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             const Text('• HIPAA compliant data handling'),
@@ -825,7 +714,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CLOSE')),
+            child: const Text('CLOSE'),
           ),
         ],
       ),
@@ -836,14 +725,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Support & Help')),
+        title: const Text('Support & Help'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
               leading: const Icon(Icons.email, color: AppColors.primaryGreen),
-              title: Text(_t('Email Support')),
+              title: const Text('Email Support'),
               subtitle: const Text('support@HisGraceDrugshop.com'),
               onTap: () {
                 _launchUrl('mailto:support@HisGraceDrugshop.com');
@@ -851,7 +740,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.phone, color: AppColors.primaryGreen),
-              title: Text(_t('Phone Support')),
+              title: const Text('Phone Support'),
               subtitle: const Text('+256 700 123 456'),
               onTap: () {
                 _launchUrl('tel:+256700123456');
@@ -859,16 +748,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.chat, color: AppColors.primaryGreen),
-              title: Text(_t('Live Chat')),
-              subtitle: Text(_t('Available 9am-5pm')),
+              title: const Text('Live Chat'),
+              subtitle: const Text('Available 9am-5pm'),
               onTap: () {
                 _launchUrl('https://www.HisGraceDrugshop.com/chat');
               },
             ),
             ListTile(
               leading: const Icon(Icons.help, color: AppColors.primaryGreen),
-              title: Text(_t('FAQ')),
-              subtitle: Text(_t('Frequently asked questions')),
+              title: const Text('FAQ'),
+              subtitle: const Text('Frequently asked questions'),
               onTap: () {
                 _launchUrl('https://www.HisGraceDrugshop.com/faq');
               },
@@ -878,7 +767,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CLOSE')),
+            child: const Text('CLOSE'),
           ),
         ],
       ),
@@ -889,25 +778,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Open Source Licenses')),
+        title: const Text('Open Source Licenses'),
         content: SizedBox(
           width: double.maxFinite,
           height: 300,
           child: ListView(
             children: [
-              _buildLicenseTile('Flutter', 'BSD 3-Clause', 'https://flutter.dev'),
-              _buildLicenseTile('Django', 'BSD 3-Clause', 'https://djangoproject.com'),
-              _buildLicenseTile('Provider', 'MIT', 'https://pub.dev/packages/provider'),
+              _buildLicenseTile(
+                  'Flutter', 'BSD 3-Clause', 'https://flutter.dev'),
+              _buildLicenseTile(
+                  'Django', 'BSD 3-Clause', 'https://djangoproject.com'),
+              _buildLicenseTile(
+                  'Provider', 'MIT', 'https://pub.dev/packages/provider'),
               _buildLicenseTile('Dio', 'MIT', 'https://pub.dev/packages/dio'),
-              _buildLicenseTile('Shared Preferences', 'BSD 3-Clause', 'https://pub.dev/packages/shared_preferences'),
-              _buildLicenseTile('Google Fonts', 'MIT', 'https://pub.dev/packages/google_fonts'),
+              _buildLicenseTile('Shared Preferences', 'BSD 3-Clause',
+                  'https://pub.dev/packages/shared_preferences'),
+              _buildLicenseTile('Google Fonts', 'MIT',
+                  'https://pub.dev/packages/google_fonts'),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CLOSE')),
+            child: const Text('CLOSE'),
           ),
         ],
       ),
@@ -931,11 +825,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
           Text(
             value,
-            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -949,17 +843,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // FIXED: Correct _showLanguageDialog with proper ListView.builder
   void _showLanguageDialog(BuildContext context, SettingsProvider provider) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Select Language')),
+        title: const Text('Select Language'),
         content: SizedBox(
           width: double.maxFinite,
+          height: 300, // Fixed height to make it scrollable
           child: ListView.builder(
             shrinkWrap: true,
             itemCount: provider.availableLanguages.length,
-            itemBuilder: (context, index) {
+            itemBuilder: (BuildContext context, int index) {
               final language = provider.availableLanguages[index];
               return ListTile(
                 title: Text(language),
@@ -968,7 +864,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   provider.setLanguage(language);
-                  TranslationService().setLanguage(language);
                   Navigator.pop(context);
                   setState(() {});
                 },
@@ -976,62 +871,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
         ),
-      ),
-    );
-  }
-
-  void _showBackupDialog(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(_t('Backup Data')),
-        content: Text(_t('Create a backup of all your pharmacy data?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CANCEL')),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_t('Backup started...')),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              // Implement actual backup logic
-            },
-            child: Text(_t('BACKUP')),
+            child: const Text('CLOSE'),
           ),
         ],
       ),
     );
   }
 
-  void _showRestoreDialog(BuildContext context) async {
-    return showDialog(
+  void _showBackupDialog(BuildContext context) {
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_t('Restore Data')),
-        content: Text(_t('Restore data from backup? This will overwrite current data.')),
+        title: const Text('Backup Data'),
+        content: const Text('Create a backup of all your pharmacy data?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_t('CANCEL')),
+            child: const Text('CANCEL'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_t('Restore started...')),
+                const SnackBar(
+                  content: Text('Backup started...'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+            child: const Text('BACKUP'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRestoreDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Restore Data'),
+        content: const Text(
+            'Restore data from backup? This will overwrite current data.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Restore started...'),
                   backgroundColor: Colors.orange,
                 ),
               );
-              // Implement actual restore logic
             },
-            child: Text(_t('RESTORE')),
+            child: const Text('RESTORE'),
           ),
         ],
       ),
@@ -1042,19 +942,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(_t('Logout')),
-            content: Text(_t('Are you sure you want to logout?')),
+            title: const Text('Logout'),
+            content: const Text('Are you sure you want to logout?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text(_t('CANCEL')),
+                child: const Text('CANCEL'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.red,
                 ),
-                child: Text(_t('LOGOUT')),
+                child: const Text('LOGOUT'),
               ),
             ],
           ),

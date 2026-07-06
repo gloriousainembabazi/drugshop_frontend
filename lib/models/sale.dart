@@ -56,20 +56,38 @@ class Sale {
     if (input.isEmpty) {
       return 'SALE-${fallbackDate?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
     }
-    
+
     // These are COMPLETE GARBAGE patterns - if ANY match, replace entirely
     final garbagePatterns = [
-      'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'INVOICE', 'OFFERED', 'BY',
-      'ILLIOTT', 'OVERFORD', 'PRICE',
-      'fight', 'covered', 'fixtels', 'pairs', 'invoice', 'offered', 'by',
-      'illiott', 'overford', 'price',
-      'SALE-000', 'SALE-', 'sale-'
+      'FIGHT',
+      'COVERED',
+      'FIXTELS',
+      'PAIRS',
+      'INVOICE',
+      'OFFERED',
+      'BY',
+      'ILLIOTT',
+      'OVERFORD',
+      'PRICE',
+      'fight',
+      'covered',
+      'fixtels',
+      'pairs',
+      'invoice',
+      'offered',
+      'by',
+      'illiott',
+      'overford',
+      'price',
+      'SALE-000',
+      'SALE-',
+      'sale-'
     ];
-    
+
     // Check if this is completely garbage data
     String upperInput = input.toUpperCase();
     bool isCompleteGarbage = false;
-    
+
     for (var pattern in garbagePatterns) {
       String upperPattern = pattern.toUpperCase();
       if (upperInput.contains(upperPattern)) {
@@ -77,10 +95,10 @@ class Sale {
         break;
       }
     }
-    
+
     // If it contains garbage words
-    if (upperInput.contains('FIGHT') || 
-        upperInput.contains('COVERED') || 
+    if (upperInput.contains('FIGHT') ||
+        upperInput.contains('COVERED') ||
         upperInput.contains('FIXTELS') ||
         upperInput.contains('PAIRS') ||
         upperInput.contains('INVOICE') ||
@@ -89,12 +107,12 @@ class Sale {
         upperInput.contains('PRICE')) {
       isCompleteGarbage = true;
     }
-    
+
     // If it's garbage, generate a completely new ID
     if (isCompleteGarbage) {
       return 'SALE-${fallbackDate?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
     }
-    
+
     // Return the original if it looks like a valid ID
     if (input.startsWith('SALE-') && input.length > 5) {
       // Extract just the SALE-XXX part, remove any trailing numbers
@@ -104,28 +122,28 @@ class Sale {
       }
       return input;
     }
-    
+
     // Last resort - generate new ID
     return 'SALE-${fallbackDate?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch}';
   }
 
   factory Sale.fromJson(Map<String, dynamic> json) {
     // Get the sale date first (used for fallback ID)
-    DateTime saleDate = json['sale_date'] != null 
-        ? DateTime.parse(json['sale_date']) 
+    DateTime saleDate = json['sale_date'] != null
+        ? DateTime.parse(json['sale_date'])
         : DateTime.now();
-    
+
     // AGGRESSIVELY clean the sale ID
     String rawSaleId = json['sale_id']?.toString() ?? '';
     String cleanSaleId = _cleanString(rawSaleId, fallbackDate: saleDate);
-    
+
     // Clean customer name - if it contains garbage, set to null
     String? cleanCustomerName;
     if (json['customer_name'] != null) {
       String rawCustomerName = json['customer_name'].toString();
       String upperName = rawCustomerName.toUpperCase();
-      if (upperName.contains('FIGHT') || 
-          upperName.contains('COVERED') || 
+      if (upperName.contains('FIGHT') ||
+          upperName.contains('COVERED') ||
           upperName.contains('FIXTELS') ||
           upperName.contains('PAIRS') ||
           upperName.contains('INVOICE') ||
@@ -137,24 +155,24 @@ class Sale {
         cleanCustomerName = rawCustomerName;
       }
     }
-    
+
     // Clean payment method - if it contains garbage, set to 'Cash'
     String cleanPaymentMethod = 'Cash';
     if (json['payment_method'] != null) {
       String rawPaymentMethod = json['payment_method'].toString();
       String upperMethod = rawPaymentMethod.toUpperCase();
-      if (!(upperMethod.contains('FIGHT') || 
-             upperMethod.contains('COVERED') || 
-             upperMethod.contains('FIXTELS') ||
-             upperMethod.contains('PAIRS') ||
-             upperMethod.contains('INVOICE') ||
-             upperMethod.contains('ILLIOTT') ||
-             upperMethod.contains('OVERFORD') ||
-             upperMethod.contains('PRICE'))) {
+      if (!(upperMethod.contains('FIGHT') ||
+          upperMethod.contains('COVERED') ||
+          upperMethod.contains('FIXTELS') ||
+          upperMethod.contains('PAIRS') ||
+          upperMethod.contains('INVOICE') ||
+          upperMethod.contains('ILLIOTT') ||
+          upperMethod.contains('OVERFORD') ||
+          upperMethod.contains('PRICE'))) {
         cleanPaymentMethod = rawPaymentMethod;
       }
     }
-    
+
     return Sale(
       id: json['id'] ?? 0,
       saleId: cleanSaleId,
@@ -170,9 +188,8 @@ class Sale {
       notes: json['notes'],
       paymentMethod: cleanPaymentMethod,
       saleType: json['sale_type'] ?? 'retail',
-      items: json['items'] != null && json['items'] is List 
-          ? json['items'] 
-          : [],
+      items:
+          json['items'] != null && json['items'] is List ? json['items'] : [],
     );
   }
 
@@ -203,7 +220,8 @@ class CartItem {
     this.saleType = 'retail',
   });
 
-  double get price => saleType == 'wholesale' ? medicine.wholesalePrice : medicine.retailPrice;
+  double get price =>
+      saleType == 'wholesale' ? medicine.wholesalePrice : medicine.retailPrice;
   double get subtotal => price * quantity;
 
   Map<String, dynamic> toJson() {
@@ -231,9 +249,9 @@ class SaleGroup {
     required String? customerName,
     required this.staffName,
     required String? paymentMethod,
-  }) : _originalSaleId = saleId,
-       _originalCustomerName = customerName,
-       _originalPaymentMethod = paymentMethod;
+  })  : _originalSaleId = saleId,
+        _originalCustomerName = customerName,
+        _originalPaymentMethod = paymentMethod;
 
   double get totalAmount => items.fold(0, (sum, item) => sum + item.totalPrice);
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
@@ -242,31 +260,47 @@ class SaleGroup {
   // COMPLETELY CLEAN SALE ID - removes any extra numbers
   String get cleanSaleId {
     String rawId = _originalSaleId;
-    
+
     // Remove any newline characters and extra spaces
     rawId = rawId.replaceAll('\n', ' ').trim();
-    
+
     // List of garbage patterns
     final garbagePatterns = [
-      'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'INVOICE', 'OFFERED', 
-      'ILLIOTT', 'OVERFORD', 'PRICE', 'BY',
-      'fight', 'covered', 'fixtels', 'pairs', 'invoice', 'offered',
-      'illiott', 'overford', 'price', 'by'
+      'FIGHT',
+      'COVERED',
+      'FIXTELS',
+      'PAIRS',
+      'INVOICE',
+      'OFFERED',
+      'ILLIOTT',
+      'OVERFORD',
+      'PRICE',
+      'BY',
+      'fight',
+      'covered',
+      'fixtels',
+      'pairs',
+      'invoice',
+      'offered',
+      'illiott',
+      'overford',
+      'price',
+      'by'
     ];
-    
+
     // Check for garbage
     for (var pattern in garbagePatterns) {
       if (rawId.contains(pattern)) {
         return 'SALE-${saleDate.millisecondsSinceEpoch}';
       }
     }
-    
+
     // Extract just the SALE-XXX part (remove trailing numbers like "924250")
     final match = RegExp(r'SALE-\d+').firstMatch(rawId);
     if (match != null) {
       return match.group(0)!;
     }
-    
+
     // If it starts with SALE- but has extra, try to clean it
     if (rawId.startsWith('SALE-')) {
       // Keep only the first part until a space or newline
@@ -275,12 +309,12 @@ class SaleGroup {
         return parts[0];
       }
     }
-    
+
     // If too short or invalid, generate new
     if (rawId.length < 5) {
       return 'SALE-${saleDate.millisecondsSinceEpoch}';
     }
-    
+
     return rawId;
   }
 
@@ -290,26 +324,42 @@ class SaleGroup {
   // Clean customer name
   String get cleanCustomerName {
     if (_originalCustomerName == null) return 'Walk-in Customer';
-    
+
     String rawName = _originalCustomerName!;
-    
+
     final garbagePatterns = [
-      'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'INVOICE', 'OFFERED',
-      'ILLIOTT', 'OVERFORD', 'PRICE', 'BY',
-      'fight', 'covered', 'fixtels', 'pairs', 'invoice', 'offered',
-      'illiott', 'overford', 'price', 'by'
+      'FIGHT',
+      'COVERED',
+      'FIXTELS',
+      'PAIRS',
+      'INVOICE',
+      'OFFERED',
+      'ILLIOTT',
+      'OVERFORD',
+      'PRICE',
+      'BY',
+      'fight',
+      'covered',
+      'fixtels',
+      'pairs',
+      'invoice',
+      'offered',
+      'illiott',
+      'overford',
+      'price',
+      'by'
     ];
-    
+
     for (var pattern in garbagePatterns) {
       if (rawName.contains(pattern)) {
         return 'Walk-in Customer';
       }
     }
-    
+
     if (rawName.length < 2) {
       return 'Walk-in Customer';
     }
-    
+
     return rawName;
   }
 
@@ -318,26 +368,42 @@ class SaleGroup {
   // Clean payment method
   String get cleanPaymentMethod {
     if (_originalPaymentMethod == null) return 'Cash';
-    
+
     String rawMethod = _originalPaymentMethod!;
-    
+
     final garbagePatterns = [
-      'FIGHT', 'COVERED', 'FIXTELS', 'PAIRS', 'INVOICE', 'OFFERED',
-      'ILLIOTT', 'OVERFORD', 'PRICE', 'BY',
-      'fight', 'covered', 'fixtels', 'pairs', 'invoice', 'offered',
-      'illiott', 'overford', 'price', 'by'
+      'FIGHT',
+      'COVERED',
+      'FIXTELS',
+      'PAIRS',
+      'INVOICE',
+      'OFFERED',
+      'ILLIOTT',
+      'OVERFORD',
+      'PRICE',
+      'BY',
+      'fight',
+      'covered',
+      'fixtels',
+      'pairs',
+      'invoice',
+      'offered',
+      'illiott',
+      'overford',
+      'price',
+      'by'
     ];
-    
+
     for (var pattern in garbagePatterns) {
       if (rawMethod.contains(pattern)) {
         return 'Cash';
       }
     }
-    
+
     if (rawMethod.length < 2) {
       return 'Cash';
     }
-    
+
     return rawMethod;
   }
 

@@ -26,8 +26,16 @@ class _PaymentDialogState extends State<PaymentDialog> {
 
   final List<Map<String, dynamic>> _paymentMethods = [
     {'value': 'cash', 'label': 'Cash', 'icon': Icons.money},
-    {'value': 'mobile_money', 'label': 'Mobile Money', 'icon': Icons.phone_android},
-    {'value': 'bank_transfer', 'label': 'Bank Transfer', 'icon': Icons.account_balance},
+    {
+      'value': 'mobile_money',
+      'label': 'Mobile Money',
+      'icon': Icons.phone_android
+    },
+    {
+      'value': 'bank_transfer',
+      'label': 'Bank Transfer',
+      'icon': Icons.account_balance
+    },
     {'value': 'cheque', 'label': 'Cheque', 'icon': Icons.assignment},
   ];
 
@@ -139,14 +147,16 @@ class _PaymentDialogState extends State<PaymentDialog> {
                   child: CustomButton(
                     text: 'RECORD PAYMENT',
                     onPressed: () {
-                      final amount = double.tryParse(_amountController.text) ?? 0;
+                      final amount =
+                          double.tryParse(_amountController.text) ?? 0;
                       if (amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Enter valid amount')),
                         );
                         return;
                       }
-                      widget.onConfirm(amount, _paymentMethod, _notesController.text);
+                      widget.onConfirm(
+                          amount, _paymentMethod, _notesController.text);
                       Navigator.pop(context);
                     },
                   ),

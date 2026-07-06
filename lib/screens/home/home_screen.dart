@@ -19,7 +19,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late TabController _tabController;
   String _selectedPeriod = 'daily';
@@ -58,11 +59,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _loadDashboardData() async {
     setState(() => _isLoading = true);
-    
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
+
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
     final saleProvider = Provider.of<SaleProvider>(context, listen: false);
     final creditProvider = Provider.of<CreditProvider>(context, listen: false);
-    
+
     try {
       await Future.wait([
         medicineProvider.loadMedicines(refresh: true),
@@ -72,13 +74,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         saleProvider.loadSales(refresh: true),
         saleProvider.loadDailySales(),
       ]);
-      
+
       await _loadCreditData();
-      
     } catch (e) {
-      print('Error loading data: $e');
+      debugPrint('Error loading data: $e');
     }
-    
+
     if (mounted) {
       setState(() => _isLoading = false);
     }
@@ -86,16 +87,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _loadCreditData() async {
     setState(() => _isLoadingCredit = true);
-    
+
     final creditProvider = Provider.of<CreditProvider>(context, listen: false);
     await creditProvider.loadCreditSales();
-    
-    final totalCredit = creditProvider.creditSales
-        .fold<double>(0, (sum, s) => sum + s.balance);
-    
+
+    final totalCredit =
+        creditProvider.creditSales.fold<double>(0, (sum, s) => sum + s.balance);
+
     final totalCreditPaid = creditProvider.creditSales
         .fold<double>(0, (sum, s) => sum + s.amountPaid);
-    
+
     if (mounted) {
       setState(() {
         _totalCredit = totalCredit;
@@ -106,14 +107,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _filterMedicines(String query) {
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
     setState(() {
       if (query.isEmpty) {
         _filteredMedicines = [];
         _isSearching = false;
       } else {
         _filteredMedicines = medicineProvider.medicines
-            .where((m) => 
+            .where((m) =>
                 m.name.toLowerCase().contains(query.toLowerCase()) ||
                 m.genericName.toLowerCase().contains(query.toLowerCase()) ||
                 m.batchNumber.toLowerCase().contains(query.toLowerCase()))
@@ -161,7 +163,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   if (medicine.isLowStock)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.orange.shade100,
                         borderRadius: BorderRadius.circular(12),
@@ -177,7 +180,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   if (medicine.isExpired)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.red.shade100,
                         borderRadius: BorderRadius.circular(12),
@@ -205,12 +209,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               _buildDetailRow('Batch Number', medicine.batchNumber),
               _buildDetailRow('Category', medicine.categoryName),
               _buildDetailRow('Supplier', medicine.supplierName),
-              _buildDetailRow('Quantity in Stock', medicine.quantity.toString()),
-              _buildDetailRow('Minimum Stock', medicine.minStockLevel.toString()),
-              _buildDetailRow('Retail Price', 'UGX ${medicine.retailPrice.toStringAsFixed(0)}'),
-              _buildDetailRow('Expiry Date', 
+              _buildDetailRow(
+                  'Quantity in Stock', medicine.quantity.toString()),
+              _buildDetailRow(
+                  'Minimum Stock', medicine.minStockLevel.toString()),
+              _buildDetailRow('Retail Price',
+                  'UGX ${medicine.retailPrice.toStringAsFixed(0)}'),
+              _buildDetailRow('Expiry Date',
                   '${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}'),
-              _buildDetailRow('Days Until Expiry', medicine.daysUntilExpiry.toString()),
+              _buildDetailRow(
+                  'Days Until Expiry', medicine.daysUntilExpiry.toString()),
               const SizedBox(height: 20),
               if (medicine.isLowStock)
                 Container(
@@ -221,12 +229,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.warning, size: 18, color: Colors.orange.shade700),
+                      Icon(Icons.warning,
+                          size: 18, color: Colors.orange.shade700),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'Low stock! Only ${medicine.quantity} left. Min: ${medicine.minStockLevel}',
-                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.orange.shade700),
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.orange.shade700),
                         ),
                       ),
                     ],
@@ -241,12 +251,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.dangerous, size: 18, color: Colors.red.shade700),
+                      Icon(Icons.dangerous,
+                          size: 18, color: Colors.red.shade700),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'This medicine has expired!',
-                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.red.shade700),
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.red.shade700),
                         ),
                       ),
                     ],
@@ -270,7 +282,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          Navigator.pushNamed(context, '/add-stock', arguments: medicine.id);
+                          Navigator.pushNamed(context, '/add-stock',
+                              arguments: medicine.id);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
@@ -294,11 +307,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
+          Text(label,
+              style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
           Flexible(
             child: Text(
               value,
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 12),
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500, fontSize: 12),
               textAlign: TextAlign.right,
             ),
           ),
@@ -384,7 +399,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            icon: Icon(_isSearching ? Icons.close : Icons.search, color: Colors.white, size: 22),
+            icon: Icon(_isSearching ? Icons.close : Icons.search,
+                color: Colors.white, size: 22),
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching;
@@ -398,20 +414,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const SizedBox(width: 4),
           Consumer<MedicineProvider>(
             builder: (context, provider, child) {
-              final totalAlerts = provider.lowStockMedicines.length + 
-                                 provider.expiringMedicines.length +
-                                 provider.expiredMedicines.length;
-              
+              final totalAlerts = provider.lowStockMedicines.length +
+                  provider.expiringMedicines.length +
+                  provider.expiredMedicines.length;
+
               // Only show badge if there are alerts AND user hasn't viewed them
               final showBadge = totalAlerts > 0 && !_notificationsViewed;
-              
+
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   IconButton(
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                    icon: const Icon(Icons.notifications_outlined,
+                        color: Colors.white, size: 22),
                     onPressed: () => _showNotifications(context, totalAlerts),
                   ),
                   if (showBadge)
@@ -447,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           PopupMenuButton<String>(
             icon: CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               child: Text(
                 user?.initials ?? 'U',
                 style: GoogleFonts.poppins(
@@ -602,7 +619,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
+                      Icon(Icons.search_off,
+                          size: 48, color: Colors.grey.shade400),
                       const SizedBox(height: 12),
                       Text(
                         'No medicines found',
@@ -619,7 +637,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.search, size: 48, color: Colors.grey.shade400),
+                          Icon(Icons.search,
+                              size: 48, color: Colors.grey.shade400),
                           const SizedBox(height: 12),
                           Text(
                             'Type to search medicines',
@@ -639,22 +658,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
                             leading: CircleAvatar(
                               radius: 18,
-                              backgroundColor: medicine.isLowStock 
-                                  ? Colors.orange 
-                                  : medicine.isExpired 
-                                      ? Colors.red 
+                              backgroundColor: medicine.isLowStock
+                                  ? Colors.orange
+                                  : medicine.isExpired
+                                      ? Colors.red
                                       : Colors.green,
                               child: Text(
                                 medicine.quantity.toString(),
-                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
                               ),
                             ),
                             title: Text(
                               medicine.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 14),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -663,9 +685,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               style: const TextStyle(fontSize: 11),
                             ),
                             trailing: medicine.isLowStock
-                                ? const Icon(Icons.warning, color: Colors.orange, size: 18)
+                                ? const Icon(Icons.warning,
+                                    color: Colors.orange, size: 18)
                                 : medicine.isExpired
-                                    ? const Icon(Icons.dangerous, color: Colors.red, size: 18)
+                                    ? const Icon(Icons.dangerous,
+                                        color: Colors.red, size: 18)
                                     : null,
                             onTap: () => _showMedicineDetails(medicine),
                           ),
@@ -735,7 +759,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             // Sales Overview Chart
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -787,7 +812,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             // Financial Overview
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -876,7 +902,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 final hasLowStock = provider.lowStockMedicines.isNotEmpty;
                 final hasExpiring = provider.expiringMedicines.isNotEmpty;
                 final hasExpired = provider.expiredMedicines.isNotEmpty;
-                
+
                 if (!hasLowStock && !hasExpiring && !hasExpired) {
                   return const SizedBox.shrink();
                 }
@@ -950,7 +976,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           ),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/sales'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/sales'),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(50, 30),
@@ -966,12 +993,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ],
                     ),
                     const SizedBox(height: 6),
-                    ...provider.dailySales.take(3).map((sale) => _buildRecentSaleCard(sale)),
+                    ...provider.dailySales
+                        .take(3)
+                        .map((sale) => _buildRecentSaleCard(sale)),
                   ],
                 );
               },
             ),
-            
+
             const SizedBox(height: 70),
           ],
         ),
@@ -988,13 +1017,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final saleProvider = Provider.of<SaleProvider>(context, listen: false);
     final now = DateTime.now();
     return saleProvider.sales
-        .where((s) => s.saleDate.year == now.year && s.saleDate.month == now.month)
+        .where(
+            (s) => s.saleDate.year == now.year && s.saleDate.month == now.month)
         .fold<double>(0, (sum, s) => sum + s.totalPrice);
   }
 
   Widget _buildSalesChart(SaleProvider saleProvider) {
     List<Map<String, dynamic>> chartData = [];
-    
+
     switch (_selectedPeriod) {
       case 'daily':
         chartData = _prepareDailyChartData(saleProvider.sales);
@@ -1027,7 +1057,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       );
     }
 
-    final maxValue = chartData.fold<double>(0, (max, d) => d['value'] > max ? d['value'] : max);
+    final maxValue = chartData.fold<double>(
+        0, (max, d) => d['value'] > max ? d['value'] : max);
     final chartHeight = 160.0;
 
     return Column(
@@ -1038,8 +1069,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(chartData.length, (index) {
               final data = chartData[index];
-              final height = maxValue > 0 ? (data['value'] / maxValue) * (chartHeight - 40) : 0;
-              
+              final height = maxValue > 0
+                  ? (data['value'] / maxValue) * (chartHeight - 40)
+                  : 0;
+
               return Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -1083,7 +1116,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withOpacity(0.1),
+            color: AppColors.primaryGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -1113,23 +1146,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   List<Map<String, dynamic>> _prepareDailyChartData(List<Sale> sales) {
     if (sales.isEmpty) return [];
-    
+
     final today = DateTime.now();
-    final todaySales = sales.where((s) => 
-      s.saleDate.year == today.year &&
-      s.saleDate.month == today.month &&
-      s.saleDate.day == today.day
-    ).toList();
-    
+    final todaySales = sales
+        .where((s) =>
+            s.saleDate.year == today.year &&
+            s.saleDate.month == today.month &&
+            s.saleDate.day == today.day)
+        .toList();
+
     if (todaySales.isEmpty) return [];
-    
+
     final periods = {
       'Morning': 0.0,
       'Afternoon': 0.0,
       'Evening': 0.0,
       'Night': 0.0,
     };
-    
+
     for (var sale in todaySales) {
       final hour = sale.saleDate.hour;
       if (hour >= 6 && hour < 12) {
@@ -1142,35 +1176,46 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         periods['Night'] = (periods['Night'] ?? 0) + sale.totalPrice;
       }
     }
-    
+
     final result = <Map<String, dynamic>>[];
-    if (periods['Morning']! > 0) result.add({'label': 'Morning', 'value': periods['Morning']!});
-    if (periods['Afternoon']! > 0) result.add({'label': 'Afternoon', 'value': periods['Afternoon']!});
-    if (periods['Evening']! > 0) result.add({'label': 'Evening', 'value': periods['Evening']!});
-    if (periods['Night']! > 0) result.add({'label': 'Night', 'value': periods['Night']!});
-    
+    if (periods['Morning']! > 0)
+      result.add({'label': 'Morning', 'value': periods['Morning']!});
+    if (periods['Afternoon']! > 0)
+      result.add({'label': 'Afternoon', 'value': periods['Afternoon']!});
+    if (periods['Evening']! > 0)
+      result.add({'label': 'Evening', 'value': periods['Evening']!});
+    if (periods['Night']! > 0)
+      result.add({'label': 'Night', 'value': periods['Night']!});
+
     return result;
   }
 
   List<Map<String, dynamic>> _prepareWeeklyChartData(List<Sale> sales) {
     if (sales.isEmpty) return [];
-    
+
     final now = DateTime.now();
     final weekAgo = now.subtract(const Duration(days: 7));
-    final weeklySales = sales.where((s) => s.saleDate.isAfter(weekAgo)).toList();
-    
+    final weeklySales =
+        sales.where((s) => s.saleDate.isAfter(weekAgo)).toList();
+
     if (weeklySales.isEmpty) return [];
-    
+
     Map<String, double> dailyTotals = {
-      'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0
+      'Mon': 0,
+      'Tue': 0,
+      'Wed': 0,
+      'Thu': 0,
+      'Fri': 0,
+      'Sat': 0,
+      'Sun': 0
     };
-    
+
     for (var sale in weeklySales) {
       final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       final dayName = dayNames[sale.saleDate.weekday - 1];
       dailyTotals[dayName] = (dailyTotals[dayName] ?? 0) + sale.totalPrice;
     }
-    
+
     return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         .map((day) => {'label': day, 'value': dailyTotals[day] ?? 0})
         .toList();
@@ -1178,21 +1223,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   List<Map<String, dynamic>> _prepareMonthlyChartData(List<Sale> sales) {
     if (sales.isEmpty) return [];
-    
+
     final now = DateTime.now();
     final sixMonthsAgo = DateTime(now.year, now.month - 5, 1);
-    final monthlySales = sales.where((s) => s.saleDate.isAfter(sixMonthsAgo)).toList();
-    
+    final monthlySales =
+        sales.where((s) => s.saleDate.isAfter(sixMonthsAgo)).toList();
+
     if (monthlySales.isEmpty) return [];
-    
+
     Map<String, double> monthlyTotals = {};
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+    final monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+
     for (var sale in monthlySales) {
       final monthName = monthNames[sale.saleDate.month - 1];
-      monthlyTotals[monthName] = (monthlyTotals[monthName] ?? 0) + sale.totalPrice;
+      monthlyTotals[monthName] =
+          (monthlyTotals[monthName] ?? 0) + sale.totalPrice;
     }
-    
+
     final result = <Map<String, dynamic>>[];
     for (int i = 5; i >= 0; i--) {
       final date = DateTime(now.year, now.month - i, 1);
@@ -1202,11 +1262,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return result;
   }
 
-  Widget _buildFinancialCard(String title, String value, IconData icon, Color color) {
+  Widget _buildFinancialCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -1237,7 +1298,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color,
+      VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -1295,23 +1357,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           crossAxisSpacing: 8,
           childAspectRatio: 0.9,
           children: [
-            _buildQuickActionItem('New Sale', Icons.add_shopping_cart, Colors.green, '/new-sale'),
-            _buildQuickActionItem('Add Med', Icons.add_box, Colors.blue, '/add-medicine'),
-            _buildQuickActionItem('Stock', Icons.inventory, Colors.brown, '/stock-take'),
-            _buildQuickActionItem('Credit', Icons.credit_card, Colors.purple, '/credit'),
-            _buildQuickActionItem('prescriptions', Icons.description, Colors.teal, '/prescriptions'),
-            _buildQuickActionItem('Expense', Icons.receipt, Colors.red, '/expenses'),
-            _buildQuickActionItem('Reports', Icons.assessment, Colors.orange, '/reports'),
-            _buildQuickActionItem('More', Icons.more_horiz, Colors.grey, '/more'),
+            _buildQuickActionItem(
+                'New Sale', Icons.add_shopping_cart, Colors.green, '/new-sale'),
+            _buildQuickActionItem(
+                'Add Med', Icons.add_box, Colors.blue, '/add-medicine'),
+            _buildQuickActionItem(
+                'Stock', Icons.inventory, Colors.brown, '/stock-take'),
+            _buildQuickActionItem(
+                'Credit', Icons.credit_card, Colors.purple, '/credit'),
+            _buildQuickActionItem('prescriptions', Icons.description,
+                Colors.teal, '/prescriptions'),
+            _buildQuickActionItem(
+                'Expense', Icons.receipt, Colors.red, '/expenses'),
+            _buildQuickActionItem(
+                'Reports', Icons.assessment, Colors.orange, '/reports'),
+            _buildQuickActionItem(
+                'More', Icons.more_horiz, Colors.grey, '/more'),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildQuickActionItem(String label, IconData icon, Color color, String route) {
+  Widget _buildQuickActionItem(
+      String label, IconData icon, Color color, String route) {
     return Material(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, route),
@@ -1340,9 +1411,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildAlertCard(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildAlertCard(String title, String subtitle, IconData icon,
+      Color color, VoidCallback onTap) {
     return Card(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
         dense: true,
@@ -1497,12 +1569,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           backgroundColor: Colors.orange,
                           child: Text(
                             medicine.quantity.toString(),
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12),
                           ),
                         ),
                         title: Text(
                           medicine.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13),
                         ),
                         subtitle: Text(
                           'Current: ${medicine.quantity} | Min: ${medicine.minStockLevel}',
@@ -1511,14 +1585,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         trailing: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            Navigator.pushNamed(context, '/add-stock', arguments: medicine.id);
+                            Navigator.pushNamed(context, '/add-stock',
+                                arguments: medicine.id);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
                             minimumSize: const Size(80, 30),
                           ),
-                          child: const Text('Order', style: TextStyle(fontSize: 11)),
+                          child: const Text('Order',
+                              style: TextStyle(fontSize: 11)),
                         ),
                       ),
                     );
@@ -1584,12 +1661,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           backgroundColor: Colors.blue,
                           child: Text(
                             medicine.daysUntilExpiry.toString(),
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12),
                           ),
                         ),
                         title: Text(
                           medicine.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13),
                         ),
                         subtitle: Text(
                           'Expires in ${medicine.daysUntilExpiry} days',
@@ -1659,17 +1738,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         leading: const CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.red,
-                          child: Icon(Icons.dangerous, color: Colors.white, size: 16),
+                          child: Icon(Icons.dangerous,
+                              color: Colors.white, size: 16),
                         ),
                         title: Text(
                           medicine.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13),
                         ),
                         subtitle: Text(
                           'Expired on ${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}',
                           style: const TextStyle(fontSize: 11),
                         ),
-                        trailing: const Icon(Icons.warning, color: Colors.red, size: 16),
+                        trailing: const Icon(Icons.warning,
+                            color: Colors.red, size: 16),
                       ),
                     );
                   },
@@ -1687,7 +1769,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     setState(() {
       _notificationsViewed = true;
     });
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1764,7 +1846,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildNotificationSection(String title, List<Medicine> medicines, Color color, IconData icon, String detailLabel) {
+  Widget _buildNotificationSection(String title, List<Medicine> medicines,
+      Color color, IconData icon, String detailLabel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1778,26 +1861,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         const SizedBox(height: 6),
         ...medicines.take(3).map(
-          (medicine) => ListTile(
-            dense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-            leading: Icon(icon, color: color, size: 18),
-            title: Text(
-              medicine.name,
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              (medicine) => ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                leading: Icon(icon, color: color, size: 18),
+                title: Text(
+                  medicine.name,
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500, fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '$detailLabel ${title.contains('Low') ? '${medicine.quantity} (Min: ${medicine.minStockLevel})' : title.contains('Expiring') ? '${medicine.daysUntilExpiry} days' : '${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}'}',
+                  style: GoogleFonts.poppins(fontSize: 10),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showMedicineDetails(medicine);
+                },
+              ),
             ),
-            subtitle: Text(
-              '$detailLabel ${title.contains('Low') ? '${medicine.quantity} (Min: ${medicine.minStockLevel})' : title.contains('Expiring') ? '${medicine.daysUntilExpiry} days' : '${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}'}',
-              style: GoogleFonts.poppins(fontSize: 10),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              _showMedicineDetails(medicine);
-            },
-          ),
-        ),
         if (medicines.length > 3)
           Padding(
             padding: const EdgeInsets.only(left: 24),

@@ -17,7 +17,7 @@ class SalesChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final groupedData = _groupSalesData();
-    
+
     if (groupedData.isEmpty) {
       return Card(
         elevation: 4,
@@ -47,7 +47,8 @@ class SalesChart extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(12),
@@ -155,12 +156,12 @@ class SalesChart extends StatelessWidget {
 
   List<Map<String, double>> _groupSalesData() {
     final Map<String, double> grouped = {};
-    
+
     for (var sale in salesData) {
       String key;
       final dateStr = sale['sale_date'] ?? DateTime.now().toIso8601String();
       final date = DateTime.parse(dateStr);
-      
+
       switch (chartType) {
         case 'daily':
           key = DateFormat('MMM dd').format(date);
@@ -174,11 +175,11 @@ class SalesChart extends StatelessWidget {
         default:
           key = DateFormat('MMM dd').format(date);
       }
-      
+
       final total = (sale['total_price'] ?? 0).toDouble();
       grouped[key] = (grouped[key] ?? 0) + total;
     }
-    
+
     return grouped.entries.map((e) => {e.key: e.value}).toList();
   }
 

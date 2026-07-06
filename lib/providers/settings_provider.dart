@@ -8,7 +8,7 @@ class SettingsProvider extends ChangeNotifier {
   final ApiService _apiService;
 
   AppTheme _currentTheme = AppTheme.system;
-  String _language = 'English'; 
+  String _language = 'English';
   bool _autoBackup = true;
   bool _isLoading = false;
   String? _error;
@@ -28,21 +28,32 @@ class SettingsProvider extends ChangeNotifier {
   bool get autoBackup => _autoBackup;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   String get username => _username;
   String get email => _email;
   String get phone => _phone;
 
-  final List<String> availableLanguages = ['English', 'French', 'Spanish', 'Arabic', 'Swahili'];
+  final List<String> availableLanguages = [
+    'English',
+    'French',
+    'Spanish',
+    'Arabic',
+    'Swahili'
+  ];
 
   String getLanguageDisplayName(String code) {
     switch (code) {
-      case 'Arabic': return 'Arabic';
-      case 'French': return 'French';
-      case 'Spanish': return 'Spanish';
-      case 'Swahili': return 'Swahili';
+      case 'Arabic':
+        return 'Arabic';
+      case 'French':
+        return 'French';
+      case 'Spanish':
+        return 'Spanish';
+      case 'Swahili':
+        return 'Swahili';
       case 'English':
-      default: return 'English';
+      default:
+        return 'English';
     }
   }
 
@@ -61,7 +72,9 @@ class SettingsProvider extends ChangeNotifier {
         return true;
       }
       _error = response['error'] ?? 'Failed to update username';
-    } catch (e) { _error = e.toString(); }
+    } catch (e) {
+      _error = e.toString();
+    }
     _isLoading = false;
     notifyListeners();
     return false;
@@ -80,7 +93,9 @@ class SettingsProvider extends ChangeNotifier {
         return true;
       }
       _error = response['error'] ?? 'Failed to update email';
-    } catch (e) { _error = e.toString(); }
+    } catch (e) {
+      _error = e.toString();
+    }
     _isLoading = false;
     notifyListeners();
     return false;
@@ -99,7 +114,9 @@ class SettingsProvider extends ChangeNotifier {
         return true;
       }
       _error = response['error'] ?? 'Failed to update phone';
-    } catch (e) { _error = e.toString(); }
+    } catch (e) {
+      _error = e.toString();
+    }
     _isLoading = false;
     notifyListeners();
     return false;
@@ -118,7 +135,9 @@ class SettingsProvider extends ChangeNotifier {
         return true; // Use this boolean in UI to trigger logout/re-login flow
       }
       _error = response['error'] ?? 'Failed to update password';
-    } catch (e) { _error = e.toString(); }
+    } catch (e) {
+      _error = e.toString();
+    }
     _isLoading = false;
     notifyListeners();
     return false;
@@ -145,8 +164,10 @@ class SettingsProvider extends ChangeNotifier {
         final response = await _apiService.getUserLanguage();
         if (response['success'] == true && response['data'] != null) {
           dynamic rawLangData = response['data'];
-          String backendLanguage = rawLangData is Map 
-              ? (rawLangData['language_code'] ?? rawLangData['language'] ?? 'en') 
+          String backendLanguage = rawLangData is Map
+              ? (rawLangData['language_code'] ??
+                  rawLangData['language'] ??
+                  'en')
               : rawLangData.toString();
 
           if (availableLanguages.contains(backendLanguage)) {
@@ -156,7 +177,8 @@ class SettingsProvider extends ChangeNotifier {
         }
       } catch (e) {
         final savedLanguage = await _storageService.getLanguage();
-        if (savedLanguage != null && availableLanguages.contains(savedLanguage)) {
+        if (savedLanguage != null &&
+            availableLanguages.contains(savedLanguage)) {
           _language = savedLanguage;
         }
       }
@@ -212,11 +234,17 @@ class SettingsProvider extends ChangeNotifier {
 
   ThemeMode getThemeMode() {
     switch (_currentTheme) {
-      case AppTheme.light: return ThemeMode.light;
-      case AppTheme.dark: return ThemeMode.dark;
-      case AppTheme.system: return ThemeMode.system;
+      case AppTheme.light:
+        return ThemeMode.light;
+      case AppTheme.dark:
+        return ThemeMode.dark;
+      case AppTheme.system:
+        return ThemeMode.system;
     }
   }
 
-  void clearError() { _error = null; notifyListeners(); }
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
 }

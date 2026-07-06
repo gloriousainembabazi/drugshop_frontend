@@ -23,7 +23,7 @@ class MoreScreen extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppColors.primaryGreen,
-                AppColors.primaryGreen.withOpacity(0.8),
+                AppColors.primaryGreen.withValues(alpha: 0.8),
               ],
             ),
           ),
@@ -47,7 +47,6 @@ class MoreScreen extends StatelessWidget {
             subtitle: 'Track pharmacy expenses',
             onTap: () => Navigator.pushNamed(context, '/expenses'),
           ),
-          
           const SizedBox(height: 24),
           _buildSectionHeader('Inventory'),
           _buildMenuItem(
@@ -64,7 +63,6 @@ class MoreScreen extends StatelessWidget {
             subtitle: 'Scan medicine barcodes',
             onTap: () => Navigator.pushNamed(context, '/qr-scanner'),
           ),
-          
           const SizedBox(height: 24),
           _buildSectionHeader('Clinical'),
           _buildMenuItem(
@@ -74,7 +72,6 @@ class MoreScreen extends StatelessWidget {
             subtitle: 'Manage patient prescriptions',
             onTap: () => Navigator.pushNamed(context, '/prescriptions'),
           ),
-          
           if (isAdmin) ...[
             const SizedBox(height: 24),
             _buildSectionHeader('Administration'),
@@ -128,7 +125,7 @@ class MoreScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor, size: 24),

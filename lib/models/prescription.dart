@@ -17,7 +17,7 @@ class Prescription {
   final String status;
   final String notes;
   final String? prescriptionImage;
-  final String createdBy;      // Staff name who created this prescription
+  final String createdBy; // Staff name who created this prescription
   final DateTime createdAt;
   final List<PrescriptionItem> items;
 
@@ -43,13 +43,13 @@ class Prescription {
 
   factory Prescription.fromJson(Map<String, dynamic> json) {
     List<PrescriptionItem> parsedItems = [];
-    
+
     if (json['items'] != null && json['items'] is List) {
       parsedItems = (json['items'] as List)
           .map((item) => PrescriptionItem.fromJson(item))
           .toList();
     }
-    
+
     // Get created by information
     String createdBy = '';
     if (json['created_by_name'] != null) {
@@ -57,38 +57,38 @@ class Prescription {
     } else if (json['created_by'] != null) {
       createdBy = json['created_by'].toString();
     }
-    
+
     return Prescription(
       id: json['id'] ?? 0,
       prescriptionId: json['prescription_id'] ?? '',
       patientName: json['patient_name'] ?? '',
-      patientAge: json['patient_age'] is String 
-          ? int.tryParse(json['patient_age']) 
+      patientAge: json['patient_age'] is String
+          ? int.tryParse(json['patient_age'])
           : json['patient_age'],
       patientPhone: json['patient_phone'] ?? '',
       doctorName: json['doctor_name'] ?? '',
       doctorLicense: json['doctor_license'] ?? '',
       hospital: json['hospital'] ?? '',
-      issueDate: json['issue_date'] != null 
-          ? DateTime.parse(json['issue_date']) 
+      issueDate: json['issue_date'] != null
+          ? DateTime.parse(json['issue_date'])
           : DateTime.now(),
-      expiryDate: json['expiry_date'] != null 
-          ? DateTime.parse(json['expiry_date']) 
+      expiryDate: json['expiry_date'] != null
+          ? DateTime.parse(json['expiry_date'])
           : DateTime.now(),
       diagnosis: json['diagnosis'] ?? '',
       status: json['status'] ?? 'pending',
       notes: json['notes'] ?? '',
       prescriptionImage: json['prescription_image'],
       createdBy: createdBy,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : DateTime.now(),
       items: parsedItems,
     );
   }
 
   bool get isExpired => DateTime.now().isAfter(expiryDate);
-  
+
   String get statusDisplay {
     switch (status) {
       case 'pending':
@@ -105,7 +105,7 @@ class Prescription {
         return status;
     }
   }
-  
+
   Color get statusColor {
     switch (status) {
       case 'filled':

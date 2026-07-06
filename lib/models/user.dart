@@ -38,7 +38,8 @@ class User {
       lastName: json['last_name'] ?? '',
       phone: json['phone'],
       role: json['role'],
-      isEmailVerified: json['is_email_verified'] ?? json['isEmailVerified'] ?? false,
+      isEmailVerified:
+          json['is_email_verified'] ?? json['isEmailVerified'] ?? false,
 
       // backend-safe parsing
       isAdmin: json['is_admin'] ?? json['isAdmin'] ?? json['role'] == 'admin',
@@ -66,8 +67,7 @@ class User {
   // ✅ FIXED SERIALIZATION
   String toJsonString() => jsonEncode(toJson());
 
-  factory User.fromJsonString(String str) =>
-      User.fromJson(jsonDecode(str));
+  factory User.fromJsonString(String str) => User.fromJson(jsonDecode(str));
 
   // ✅ USED IN UI
   String get fullName => '$firstName $lastName'.trim();
@@ -77,10 +77,10 @@ class User {
     final l = lastName.isNotEmpty ? lastName[0] : '';
     return (f + l).toUpperCase();
   }
-  
+
   // ✅ NEW: Helper method to check if email is verified
   bool get needsVerification => !isEmailVerified;
-  
+
   // ✅ NEW: Create a copy of user with updated fields
   User copyWith({
     int? id,

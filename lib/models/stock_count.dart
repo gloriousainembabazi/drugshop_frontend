@@ -29,8 +29,9 @@ class StockCount {
       status: json['status'] ?? 'draft',
       notes: json['notes'] ?? '',
       items: (json['items'] as List?)
-          ?.map((item) => StockCountItem.fromJson(item))
-          .toList() ?? [],
+              ?.map((item) => StockCountItem.fromJson(item))
+              .toList() ??
+          [],
     );
   }
 }

@@ -1,6 +1,5 @@
 // lib/services/prescription_pdf_service.dart
 
-import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -45,7 +44,8 @@ class PrescriptionPdfService {
 
     await Printing.sharePdf(
       bytes: await pdf.save(),
-      filename: 'prescription_${prescription.prescriptionId}_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf',
+      filename:
+          'prescription_${prescription.prescriptionId}_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf',
     );
   }
 
@@ -56,7 +56,10 @@ class PrescriptionPdfService {
         children: [
           pw.Text(
             'His Grace Drugshop',
-            style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700),
+            style: pw.TextStyle(
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue700),
           ),
           pw.Text(
             'Prescription Document',
@@ -109,16 +112,19 @@ class PrescriptionPdfService {
             children: [
               _buildInfoRow('Prescription ID', prescription.prescriptionId),
               _buildInfoRow('Status', prescription.statusDisplay),
-              _buildInfoRow('Issue Date', DateFormat('dd/MM/yyyy').format(prescription.issueDate)),
-              _buildInfoRow('Expiry Date', DateFormat('dd/MM/yyyy').format(prescription.expiryDate)),
+              _buildInfoRow('Issue Date',
+                  DateFormat('dd/MM/yyyy').format(prescription.issueDate)),
+              _buildInfoRow('Expiry Date',
+                  DateFormat('dd/MM/yyyy').format(prescription.expiryDate)),
             ],
           ),
         ),
-        
+
         pw.SizedBox(height: 20),
-        
+
         // Patient Info
-        pw.Text('Patient Information', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Patient Information',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 10),
         pw.Container(
           padding: const pw.EdgeInsets.all(10),
@@ -129,17 +135,21 @@ class PrescriptionPdfService {
           child: pw.Column(
             children: [
               _buildInfoRow('Patient Name', prescription.patientName),
-              if (prescription.patientAge != null) _buildInfoRow('Age', '${prescription.patientAge}'),
-              if (prescription.patientPhone.isNotEmpty) _buildInfoRow('Phone', prescription.patientPhone),
-              if (prescription.diagnosis.isNotEmpty) _buildInfoRow('Diagnosis', prescription.diagnosis),
+              if (prescription.patientAge != null)
+                _buildInfoRow('Age', '${prescription.patientAge}'),
+              if (prescription.patientPhone.isNotEmpty)
+                _buildInfoRow('Phone', prescription.patientPhone),
+              if (prescription.diagnosis.isNotEmpty)
+                _buildInfoRow('Diagnosis', prescription.diagnosis),
             ],
           ),
         ),
-        
+
         pw.SizedBox(height: 20),
-        
+
         // Doctor Info
-        pw.Text('Doctor Information', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Doctor Information',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 10),
         pw.Container(
           padding: const pw.EdgeInsets.all(10),
@@ -150,23 +160,28 @@ class PrescriptionPdfService {
           child: pw.Column(
             children: [
               _buildInfoRow('Doctor Name', prescription.doctorName),
-              if (prescription.doctorLicense.isNotEmpty) _buildInfoRow('License', prescription.doctorLicense),
-              if (prescription.hospital.isNotEmpty) _buildInfoRow('Hospital', prescription.hospital),
+              if (prescription.doctorLicense.isNotEmpty)
+                _buildInfoRow('License', prescription.doctorLicense),
+              if (prescription.hospital.isNotEmpty)
+                _buildInfoRow('Hospital', prescription.hospital),
             ],
           ),
         ),
-        
+
         pw.SizedBox(height: 20),
-        
+
         // Medicines
-        pw.Text('Prescribed Medicines', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Prescribed Medicines',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 10),
-        
+
         _buildMedicinesTable(prescription.items),
-        
+
         if (prescription.notes.isNotEmpty) ...[
           pw.SizedBox(height: 20),
-          pw.Text('Notes', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          pw.Text('Notes',
+              style:
+                  pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 10),
           pw.Container(
             padding: const pw.EdgeInsets.all(10),
@@ -177,23 +192,27 @@ class PrescriptionPdfService {
             child: pw.Text(prescription.notes),
           ),
         ],
-        
+
         pw.SizedBox(height: 40),
-        
+
         // Signature lines
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Column(
               children: [
-                pw.Text('Pharmacist Signature', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                pw.Text('Pharmacist Signature',
+                    style:
+                        pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
                 pw.SizedBox(height: 30),
                 pw.Container(width: 150, height: 1, color: PdfColors.black),
               ],
             ),
             pw.Column(
               children: [
-                pw.Text('Patient Signature', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                pw.Text('Patient Signature',
+                    style:
+                        pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
                 pw.SizedBox(height: 30),
                 pw.Container(width: 150, height: 1, color: PdfColors.black),
               ],
@@ -211,7 +230,9 @@ class PrescriptionPdfService {
         children: [
           pw.SizedBox(
             width: 120,
-            child: pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            child: pw.Text(label,
+                style:
+                    pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
           ),
           pw.Text(': $value', style: pw.TextStyle(fontSize: 11)),
         ],
@@ -220,12 +241,14 @@ class PrescriptionPdfService {
   }
 
   static pw.Widget _buildMedicinesTable(List<PrescriptionItem> items) {
-    final rows = items.map((item) => [
-      item.medicineName,
-      '${item.prescribedQuantity}',
-      '${item.filledQuantity}/${item.prescribedQuantity}',
-      item.dosageInstructions,
-    ]).toList();
+    final rows = items
+        .map((item) => [
+              item.medicineName,
+              '${item.prescribedQuantity}',
+              '${item.filledQuantity}/${item.prescribedQuantity}',
+              item.dosageInstructions,
+            ])
+        .toList();
 
     return pw.TableHelper.fromTextArray(
       headers: ['Medicine', 'Qty', 'Filled', 'Dosage'],

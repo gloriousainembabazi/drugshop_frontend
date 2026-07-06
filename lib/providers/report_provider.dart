@@ -1,7 +1,7 @@
 // lib/providers/report_provider.dart
 
 import 'dart:convert';
-import 'dart:html' as html;
+// import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
@@ -158,35 +158,36 @@ class ReportProvider extends ChangeNotifier {
   // =========================================================
 
   Future<void> loadStaffReport() async {
-  try {
-    _setLoading(true);
-    
-    final response = await _apiService.getStaffReport();
-    
-    print('📊 STAFF REPORT API RESPONSE: ${response['success']}');
-    print('📊 STAFF REPORT DATA: ${response['data']}');
-    
-    if (_hasError(response)) {
-      _setError(response['error'] ?? 'Failed to load staff report');
-      return;
+    try {
+      _setLoading(true);
+
+      final response = await _apiService.getStaffReport();
+
+      debugPrint('📊 STAFF REPORT API RESPONSE: ${response['success']}');
+      debugPrint('📊 STAFF REPORT DATA: ${response['data']}');
+
+      if (_hasError(response)) {
+        _setError(response['error'] ?? 'Failed to load staff report');
+        return;
+      }
+
+      _staffReport = Map<String, dynamic>.from(response['data']);
+
+      // debugPrint staff summary details
+      final staffSummary = _staffReport?['staff_summary'] ?? [];
+      debugPrint('📊 NUMBER OF STAFF MEMBERS: ${staffSummary.length}');
+      for (var staff in staffSummary) {
+        debugPrint(
+            '📊 STAFF: ${staff['name']} - Role: ${staff['role']} - Sales: ${staff['total_sales']}');
+      }
+
+      clearError();
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
     }
-    
-    _staffReport = Map<String, dynamic>.from(response['data']);
-    
-    // Print staff summary details
-    final staffSummary = _staffReport?['staff_summary'] ?? [];
-    print('📊 NUMBER OF STAFF MEMBERS: ${staffSummary.length}');
-    for (var staff in staffSummary) {
-      print('📊 STAFF: ${staff['name']} - Role: ${staff['role']} - Sales: ${staff['total_sales']}');
-    }
-    
-    clearError();
-  } catch (e) {
-    _setError(e.toString());
-  } finally {
-    _setLoading(false);
   }
-}
   // =========================================================
   // DAILY SALES REPORT
   // =========================================================
@@ -292,7 +293,8 @@ class ReportProvider extends ChangeNotifier {
   Future<void> downloadInventoryReport() async {
     if (_inventoryReport == null) return;
 
-    final content = const JsonEncoder.withIndent('  ').convert(_inventoryReport);
+    final content =
+        const JsonEncoder.withIndent('  ').convert(_inventoryReport);
 
     _downloadFile(content, 'inventory_report.json');
   }
@@ -308,11 +310,13 @@ class ReportProvider extends ChangeNotifier {
   Future<void> downloadDashboardSummary() async {
     if (_dashboardSummary == null) return;
 
-    final content = const JsonEncoder.withIndent('  ').convert(_dashboardSummary);
+    final content =
+        const JsonEncoder.withIndent('  ').convert(_dashboardSummary);
 
     _downloadFile(content, 'dashboard_summary.json');
   }
 
+  // =========================================================
   // =========================================================
   // DOWNLOAD HELPER
   // =========================================================
@@ -320,14 +324,8 @@ class ReportProvider extends ChangeNotifier {
   void _downloadFile(String content, String fileName) {
     final bytes = utf8.encode(content);
 
-    final blob = html.Blob([bytes]);
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    final anchor = html.AnchorElement(href: url)
-      ..setAttribute('download', fileName)
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
+    // Web-only download functionality disabled for Android builds.
+    debugPrint('Download disabled on Android: $fileName');
+    debugPrint('Content size: ${bytes.length} bytes');
   }
 }

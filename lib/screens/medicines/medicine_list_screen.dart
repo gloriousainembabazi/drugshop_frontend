@@ -17,21 +17,25 @@ class MedicineListScreen extends StatefulWidget {
   _MedicineListScreenState createState() => _MedicineListScreenState();
 }
 
-class _MedicineListScreenState extends State<MedicineListScreen> 
+class _MedicineListScreenState extends State<MedicineListScreen>
     with SingleTickerProviderStateMixin {
-  
   late TabController _tabController;
   late ScrollController _scrollController;
   late TextEditingController _searchController;
-  
+
   String _searchQuery = '';
   String _selectedFilter = 'All';
   String _selectedSort = 'Name';
   Category? _selectedCategory;
-  
-  final List<String> _filters = ['All', 'Low Stock', 'Expiring Soon', 'Expired'];
+
+  final List<String> _filters = [
+    'All',
+    'Low Stock',
+    'Expiring Soon',
+    'Expired'
+  ];
   final List<String> _sortOptions = ['Name', 'Price', 'Stock', 'Most Sold'];
-  
+
   List<Category> _categories = [];
   List<Map<String, dynamic>> _mostSoldMedicines = [];
 
@@ -41,9 +45,9 @@ class _MedicineListScreenState extends State<MedicineListScreen>
     _tabController = TabController(length: 2, vsync: this);
     _scrollController = ScrollController();
     _searchController = TextEditingController();
-    
+
     _loadInitialData();
-    
+
     _scrollController.addListener(_onScroll);
     _searchController.addListener(_onSearchChanged);
   }
@@ -55,9 +59,10 @@ class _MedicineListScreenState extends State<MedicineListScreen>
   }
 
   Future<void> _loadInitialData() async {
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
     final saleProvider = Provider.of<SaleProvider>(context, listen: false);
-    
+
     await Future.wait([
       medicineProvider.loadCategories(),
       medicineProvider.loadMedicines(refresh: true),
@@ -66,19 +71,20 @@ class _MedicineListScreenState extends State<MedicineListScreen>
       medicineProvider.loadExpiredMedicines(),
       saleProvider.loadSales(),
     ]);
-    
+
     if (mounted) {
       setState(() {
         _categories = medicineProvider.categories;
       });
     }
-    
+
     _calculateMostSoldMedicines(saleProvider, medicineProvider);
   }
 
-  void _calculateMostSoldMedicines(SaleProvider saleProvider, MedicineProvider medicineProvider) {
+  void _calculateMostSoldMedicines(
+      SaleProvider saleProvider, MedicineProvider medicineProvider) {
     final Map<String, Map<String, dynamic>> salesData = {};
-    
+
     for (var sale in saleProvider.sales) {
       if (!salesData.containsKey(sale.medicineName)) {
         // Find medicine - if not found, skip this sale
@@ -91,26 +97,24 @@ class _MedicineListScreenState extends State<MedicineListScreen>
           // Medicine not found, skip this sale
           continue;
         }
-        
-        if (medicine != null) {
-          salesData[sale.medicineName] = {
-            'name': sale.medicineName,
-            'quantity': 0,
-            'revenue': 0.0,
-            'medicineId': medicine.id,
-          };
-        }
+
+        salesData[sale.medicineName] = {
+          'name': sale.medicineName,
+          'quantity': 0,
+          'revenue': 0.0,
+          'medicineId': medicine.id,
+        };
       }
-      
+
       if (salesData.containsKey(sale.medicineName)) {
         salesData[sale.medicineName]!['quantity'] += sale.quantity;
         salesData[sale.medicineName]!['revenue'] += sale.totalPrice;
       }
     }
-    
+
     final sortedList = salesData.values.toList()
       ..sort((a, b) => (b['quantity'] as int).compareTo(a['quantity'] as int));
-    
+
     if (mounted) {
       setState(() {
         _mostSoldMedicines = sortedList.take(10).toList();
@@ -130,7 +134,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
 
   List<Medicine> _getFilteredMedicines(MedicineProvider provider) {
     List<Medicine> medicines;
-    
+
     switch (_selectedFilter) {
       case 'Low Stock':
         medicines = provider.lowStockMedicines;
@@ -144,26 +148,33 @@ class _MedicineListScreenState extends State<MedicineListScreen>
       default:
         medicines = provider.medicines;
     }
-    
+
     if (_selectedCategory != null) {
-      medicines = medicines.where((m) => m.categoryId == _selectedCategory!.id).toList();
+      medicines = medicines
+          .where((m) => m.categoryId == _selectedCategory!.id)
+          .toList();
     }
-    
+
     return medicines;
   }
 
   List<Medicine> _filterBySearch(List<Medicine> medicines) {
     if (_searchQuery.isEmpty) return medicines;
-    return medicines.where((medicine) =>
-      medicine.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      medicine.genericName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      medicine.batchNumber.toLowerCase().contains(_searchQuery.toLowerCase())
-    ).toList();
+    return medicines
+        .where((medicine) =>
+            medicine.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            medicine.genericName
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            medicine.batchNumber
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()))
+        .toList();
   }
 
   List<Medicine> _sortMedicines(List<Medicine> medicines) {
     final sorted = List<Medicine>.from(medicines);
-    
+
     switch (_selectedSort) {
       case 'Name':
         sorted.sort((a, b) => a.name.compareTo(b.name));
@@ -188,33 +199,33 @@ class _MedicineListScreenState extends State<MedicineListScreen>
         });
         break;
     }
-    
+
     return sorted;
   }
 
   void _navigateToMedicineDetail(Medicine medicine) {
-    print('🔍 Navigating to medicine detail:');
-    print('   Name: ${medicine.name}');
-    print('   ID: ${medicine.id}');
-    print('   Is Expired: ${medicine.isExpired}');
-    
-    if (medicine.id == null || medicine.id == 0) {
-      print('❌ ERROR: Medicine ID is null or 0!');
+    debugPrint('🔍 Navigating to medicine detail:');
+    debugPrint('   Name: ${medicine.name}');
+    debugPrint('   ID: ${medicine.id}');
+    debugPrint('   Is Expired: ${medicine.isExpired}');
+
+    if (medicine.id == 0) {
+      debugPrint('❌ ERROR: Medicine ID is null or 0!');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error: Invalid medicine ID')),
       );
       return;
     }
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MedicineDetailScreen(medicineId: medicine.id),
       ),
     ).then((_) {
-      print('✅ Navigation completed');
+      debugPrint('✅ Navigation completed');
     }).catchError((error) {
-      print('❌ Navigation error: $error');
+      debugPrint('❌ Navigation error: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error opening medicine: $error')),
       );
@@ -283,12 +294,12 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Category Filter Dropdown
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: DropdownButtonFormField<Category>(
-                  value: _selectedCategory,
+                  initialValue: _selectedCategory,
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Filter by Category',
@@ -296,7 +307,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   items: [
                     const DropdownMenuItem<Category>(
@@ -318,7 +330,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Status Filters
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -337,7 +349,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                             });
                           },
                           backgroundColor: Colors.grey.shade100,
-                          selectedColor: AppConstants.primaryColor.withOpacity(0.2),
+                          selectedColor:
+                              AppConstants.primaryColor.withValues(alpha: 0.2),
                           checkmarkColor: AppConstants.primaryColor,
                         ),
                       );
@@ -346,7 +359,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               // Sort Options
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -357,7 +370,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ChoiceChip(
-                          label: Text(sortOption, style: const TextStyle(fontSize: 12)),
+                          label: Text(sortOption,
+                              style: const TextStyle(fontSize: 12)),
                           selected: _selectedSort == sortOption,
                           onSelected: (selected) {
                             setState(() {
@@ -365,7 +379,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                             });
                           },
                           backgroundColor: Colors.grey.shade100,
-                          selectedColor: AppConstants.primaryColor.withOpacity(0.2),
+                          selectedColor:
+                              AppConstants.primaryColor.withValues(alpha: 0.2),
                         ),
                       );
                     }),
@@ -375,7 +390,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
             ],
           ),
         ),
-        
+
         // Medicine List
         Expanded(
           child: Consumer<MedicineProvider>(
@@ -384,7 +399,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 return const LoadingIndicator();
               }
 
-              List<Medicine> filteredMedicines = _getFilteredMedicines(provider);
+              List<Medicine> filteredMedicines =
+                  _getFilteredMedicines(provider);
               filteredMedicines = _filterBySearch(filteredMedicines);
               filteredMedicines = _sortMedicines(filteredMedicines);
 
@@ -426,7 +442,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
-                  itemCount: filteredMedicines.length + (provider.isLoading ? 1 : 0),
+                  itemCount:
+                      filteredMedicines.length + (provider.isLoading ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == filteredMedicines.length) {
                       return const Padding(
@@ -436,7 +453,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                     }
 
                     final medicine = filteredMedicines[index];
-                    
+
                     return MedicineCard(
                       medicine: medicine,
                       onTap: () {
@@ -480,10 +497,11 @@ class _MedicineListScreenState extends State<MedicineListScreen>
         ),
       );
     }
-    
+
     return RefreshIndicator(
       onRefresh: () async {
-        final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
+        final medicineProvider =
+            Provider.of<MedicineProvider>(context, listen: false);
         final saleProvider = Provider.of<SaleProvider>(context, listen: false);
         await saleProvider.loadSales();
         _calculateMostSoldMedicines(saleProvider, medicineProvider);
@@ -495,22 +513,28 @@ class _MedicineListScreenState extends State<MedicineListScreen>
           final sale = _mostSoldMedicines[index];
           final rank = index + 1;
           final medicineId = sale['medicineId'] as int;
-          
+
           Color rankColor;
-          
-          if (rank == 1) rankColor = Colors.amber;
-          else if (rank == 2) rankColor = Colors.grey.shade600;
-          else if (rank == 3) rankColor = Colors.brown;
-          else rankColor = Colors.blue;
-          
+
+          if (rank == 1) {
+            rankColor = Colors.amber;
+          } else if (rank == 2)
+            rankColor = Colors.grey.shade600;
+          else if (rank == 3)
+            rankColor = Colors.brown;
+          else
+            rankColor = Colors.blue;
+
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
             child: InkWell(
               onTap: () async {
-                print('🖱️ TAPPED MOST SOLD: ${sale['name']} (ID: $medicineId)');
-                
-                final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
-                
+                debugPrint(
+                    '🖱️ TAPPED MOST SOLD: ${sale['name']} (ID: $medicineId)');
+
+                final medicineProvider =
+                    Provider.of<MedicineProvider>(context, listen: false);
+
                 // Find the medicine by ID
                 Medicine? medicine;
                 try {
@@ -518,22 +542,24 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                     (m) => m.id == medicineId,
                   );
                 } catch (e) {
-                  print('⚠️ Medicine not found with ID: $medicineId, reloading...');
+                  debugPrint(
+                      '⚠️ Medicine not found with ID: $medicineId, reloading...');
                   await medicineProvider.loadMedicines();
                   try {
                     medicine = medicineProvider.medicines.firstWhere(
                       (m) => m.id == medicineId,
                     );
                   } catch (e2) {
-                    print('❌ Still cannot find medicine with ID: $medicineId');
+                    debugPrint(
+                        '❌ Still cannot find medicine with ID: $medicineId');
                     medicine = null;
                   }
                 }
-                
+
                 if (medicine != null) {
                   _navigateToMedicineDetail(medicine);
                 } else {
-                  print('❌ Could not find medicine with ID: $medicineId');
+                  debugPrint('❌ Could not find medicine with ID: $medicineId');
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Medicine not found')),
@@ -550,7 +576,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: rankColor.withOpacity(0.1),
+                        color: rankColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Center(
@@ -579,25 +605,30 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.shopping_cart, size: 14, color: Colors.grey.shade600),
+                              Icon(Icons.shopping_cart,
+                                  size: 14, color: Colors.grey.shade600),
                               const SizedBox(width: 4),
                               Text(
                                 '${sale['quantity']} units sold',
-                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.grey.shade600),
                               ),
                               const SizedBox(width: 12),
-                              Icon(Icons.attach_money, size: 14, color: Colors.green.shade600),
+                              Icon(Icons.attach_money,
+                                  size: 14, color: Colors.green.shade600),
                               const SizedBox(width: 4),
                               Text(
                                 'UGX ${(sale['revenue'] as double).toStringAsFixed(0)}',
-                                style: TextStyle(fontSize: 12, color: Colors.green.shade600),
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.green.shade600),
                               ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                    Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey.shade400),
                   ],
                 ),
               ),

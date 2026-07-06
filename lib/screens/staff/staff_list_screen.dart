@@ -35,7 +35,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       // This is a placeholder - implement actual API call
       await Future.delayed(const Duration(seconds: 1));
-      
+
       setState(() {
         _staff = []; // Replace with actual staff data
         _isLoading = false;
@@ -225,8 +225,8 @@ class _StaffListScreenState extends State<StaffListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: staff['role'] == 'admin'
-                    ? Colors.purple.withOpacity(0.1)
-                    : Colors.blue.withOpacity(0.1),
+                    ? Colors.purple.withValues(alpha: 0.1)
+                    : Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -347,7 +347,6 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -363,7 +362,6 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 },
               ),
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -383,7 +381,6 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 },
               ),
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: _phoneController,
                 decoration: const InputDecoration(
@@ -400,7 +397,6 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 },
               ),
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
@@ -420,7 +416,6 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                 },
               ),
               const SizedBox(height: 16),
-
               DropdownButtonFormField<String>(
                 initialValue: _selectedRole,
                 decoration: const InputDecoration(
@@ -438,9 +433,7 @@ class _AddStaffDialogState extends State<AddStaffDialog> {
                   });
                 },
               ),
-
               const SizedBox(height: 24),
-
               Row(
                 children: [
                   Expanded(

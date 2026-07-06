@@ -11,7 +11,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -19,45 +20,45 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600), // Even faster animation
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
-    
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
-    
+
     _controller.forward();
-    
+
     // REMOVED: _precacheLogo() from here
-    
+
     _navigateToNext();
   }
-  
+
   // ADDED: Move precaching to didChangeDependencies
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _precacheLogo();
   }
-  
+
   Future<void> _precacheLogo() async {
     await precacheImage(const AssetImage('assets/images/logo.jpg'), context);
   }
 
   Future<void> _navigateToNext() async {
     await Future.delayed(AppDurations.splashDuration);
-    
+
     final prefs = await SharedPreferences.getInstance();
     final bool isFirstLaunch = prefs.getBool(StorageKeys.firstLaunch) ?? true;
     final String? token = prefs.getString(StorageKeys.token);
-    
+
     if (isFirstLaunch) {
       await prefs.setBool(StorageKeys.firstLaunch, false);
       if (mounted) {
@@ -104,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     borderRadius: BorderRadius.circular(80),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryGreen.withOpacity(0.2),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.2),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -124,7 +125,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [AppColors.primaryGreen, AppColors.primaryGreen.withOpacity(0.7)],
+                              colors: [
+                                AppColors.primaryGreen,
+                                AppColors.primaryGreen.withValues(alpha: 0.7)
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(80),
                           ),
@@ -138,10 +142,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24), // Reduced spacing
-                
-              
+
                 RichText(
                   text: TextSpan(
                     children: [
@@ -166,11 +169,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 4),
-                
-               
-                
+
                 Text(
                   AppStrings.tagline,
                   style: GoogleFonts.poppins(
@@ -179,16 +180,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     letterSpacing: 0.3,
                   ),
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryGreen),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(AppColors.primaryGreen),
                   strokeWidth: 2.5,
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 Text(
                   AppStrings.loading,
                   style: GoogleFonts.poppins(

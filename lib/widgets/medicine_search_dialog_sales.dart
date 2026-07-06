@@ -11,7 +11,8 @@ class MedicineSearchDialogSales extends StatefulWidget {
   const MedicineSearchDialogSales({super.key, required this.onSelect});
 
   @override
-  State<MedicineSearchDialogSales> createState() => _MedicineSearchDialogSalesState();
+  State<MedicineSearchDialogSales> createState() =>
+      _MedicineSearchDialogSalesState();
 }
 
 class _MedicineSearchDialogSalesState extends State<MedicineSearchDialogSales> {
@@ -34,11 +35,12 @@ class _MedicineSearchDialogSalesState extends State<MedicineSearchDialogSales> {
       if (query.isEmpty) {
         _filteredMedicines = medicines;
       } else {
-        _filteredMedicines = medicines.where((m) =>
-          m.name.toLowerCase().contains(query.toLowerCase()) ||
-          m.genericName.toLowerCase().contains(query.toLowerCase()) ||
-          m.batchNumber.toLowerCase().contains(query.toLowerCase())
-        ).toList();
+        _filteredMedicines = medicines
+            .where((m) =>
+                m.name.toLowerCase().contains(query.toLowerCase()) ||
+                m.genericName.toLowerCase().contains(query.toLowerCase()) ||
+                m.batchNumber.toLowerCase().contains(query.toLowerCase()))
+            .toList();
       }
     });
   }
@@ -49,12 +51,13 @@ class _MedicineSearchDialogSalesState extends State<MedicineSearchDialogSales> {
       builder: (context, provider, child) {
         final today = DateTime.now();
         final todayMidnight = DateTime(today.year, today.month, today.day);
-        
+
         // Filter out expired medicines
         final availableMedicines = provider.medicines
-            .where((m) => !m.expiryDate.isBefore(todayMidnight) && m.quantity > 0)
+            .where(
+                (m) => !m.expiryDate.isBefore(todayMidnight) && m.quantity > 0)
             .toList();
-        
+
         if (_filteredMedicines.isEmpty && availableMedicines.isNotEmpty) {
           _filteredMedicines = availableMedicines;
         }
@@ -94,7 +97,8 @@ class _MedicineSearchDialogSalesState extends State<MedicineSearchDialogSales> {
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        onPressed: () => _filterMedicines(availableMedicines, ''),
+                        onPressed: () =>
+                            _filterMedicines(availableMedicines, ''),
                       )
                     : null,
                 border: OutlineInputBorder(
@@ -109,14 +113,16 @@ class _MedicineSearchDialogSalesState extends State<MedicineSearchDialogSales> {
                 itemCount: _filteredMedicines.length,
                 itemBuilder: (context, index) {
                   final medicine = _filteredMedicines[index];
-                  final isLowStock = medicine.quantity <= medicine.minStockLevel;
-                  
+                  final isLowStock =
+                      medicine.quantity <= medicine.minStockLevel;
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     color: isLowStock ? Colors.orange.shade50 : Colors.white,
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: isLowStock ? Colors.orange : Colors.green,
+                        backgroundColor:
+                            isLowStock ? Colors.orange : Colors.green,
                         child: Text(
                           medicine.quantity.toString(),
                           style: const TextStyle(color: Colors.white),
@@ -137,7 +143,8 @@ class _MedicineSearchDialogSalesState extends State<MedicineSearchDialogSales> {
                             'Expires: ${medicine.expiryDate.day}/${medicine.expiryDate.month}/${medicine.expiryDate.year}',
                             style: TextStyle(
                               fontSize: 11,
-                              color: medicine.isExpired ? Colors.red : Colors.grey,
+                              color:
+                                  medicine.isExpired ? Colors.red : Colors.grey,
                             ),
                           ),
                         ],

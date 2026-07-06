@@ -39,7 +39,8 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: AppConstants.primaryColor.withOpacity(0.1),
+                    backgroundColor:
+                        AppConstants.primaryColor.withValues(alpha: 0.1),
                     child: Text(
                       user?.initials ?? 'U',
                       style: GoogleFonts.poppins(
@@ -59,17 +60,19 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: user?.isAdmin == true
-                          ? Colors.purple.withOpacity(0.1)
-                          : Colors.blue.withOpacity(0.1),
+                          ? Colors.purple.withValues(alpha: 0.1)
+                          : Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       user?.role ?? 'staff',
                       style: GoogleFonts.poppins(
-                        color: user?.isAdmin == true ? Colors.purple : Colors.blue,
+                        color:
+                            user?.isAdmin == true ? Colors.purple : Colors.blue,
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
                       ),
@@ -100,7 +103,10 @@ class ProfileScreen extends StatelessWidget {
               [
                 {'label': 'User ID', 'value': '#${user?.id ?? 0}'},
                 {'label': 'Member Since', 'value': '2024'},
-                {'label': 'Status', 'value': user?.isActive == true ? 'Active' : 'Inactive'},
+                {
+                  'label': 'Status',
+                  'value': user?.isActive == true ? 'Active' : 'Inactive'
+                },
               ],
             ),
 
@@ -174,32 +180,32 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 100,
-                  child: Text(
-                    item['label']!,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                        item['label']!,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    item['value']!,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Text(
+                        item['value']!,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );

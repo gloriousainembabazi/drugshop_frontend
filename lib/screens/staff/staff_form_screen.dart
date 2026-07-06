@@ -63,7 +63,8 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       // Split name into first and last
       final nameParts = _nameController.text.trim().split(' ');
       final firstName = nameParts.first;
-      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+      final lastName =
+          nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
       final staffData = {
         'username': _emailController.text.split('@').first,
@@ -89,7 +90,9 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isEditing ? 'Staff updated successfully' : 'Staff added successfully'),
+            content: Text(widget.isEditing
+                ? 'Staff updated successfully'
+                : 'Staff added successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -153,7 +156,8 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.veryLightGreen,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primaryGreen, width: 2),
+                        border:
+                            Border.all(color: AppColors.primaryGreen, width: 2),
                       ),
                       child: Center(
                         child: Text(
@@ -207,7 +211,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
                       CustomTextField(
                         controller: _nameController,
                         label: 'Full Name *',
@@ -215,7 +218,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                         validator: Validators.required,
                       ),
                       const SizedBox(height: 16),
-
                       CustomTextField(
                         controller: _emailController,
                         label: 'Email Address *',
@@ -224,7 +226,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                         validator: Validators.email,
                       ),
                       const SizedBox(height: 16),
-
                       CustomTextField(
                         controller: _phoneController,
                         label: 'Phone Number *',
@@ -233,7 +234,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                         validator: Validators.phone,
                       ),
                       const SizedBox(height: 16),
-
                       CustomTextField(
                         controller: _addressController,
                         label: 'Address',
@@ -273,8 +273,10 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                           border: OutlineInputBorder(),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'staff', child: Text('Staff')),
-                          DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                          DropdownMenuItem(
+                              value: 'staff', child: Text('Staff')),
+                          DropdownMenuItem(
+                              value: 'admin', child: Text('Admin')),
                         ],
                         onChanged: (value) {
                           setState(() {
@@ -307,7 +309,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                         const SizedBox(height: 16),
                         const Divider(),
                         const SizedBox(height: 16),
-
                         CustomTextField(
                           controller: _passwordController,
                           label: 'Password *',

@@ -49,16 +49,18 @@ class _SaleListScreenState extends State<SaleListScreen> {
       case 'Today':
         return saleGroups.where((group) {
           return group.saleDate.year == now.year &&
-                 group.saleDate.month == now.month &&
-                 group.saleDate.day == now.day;
+              group.saleDate.month == now.month &&
+              group.saleDate.day == now.day;
         }).toList();
       case 'This Week':
         final weekAgo = now.subtract(const Duration(days: 7));
-        return saleGroups.where((group) => group.saleDate.isAfter(weekAgo)).toList();
+        return saleGroups
+            .where((group) => group.saleDate.isAfter(weekAgo))
+            .toList();
       case 'This Month':
         return saleGroups.where((group) {
           return group.saleDate.year == now.year &&
-                 group.saleDate.month == now.month;
+              group.saleDate.month == now.month;
         }).toList();
       default:
         return saleGroups;
@@ -75,9 +77,9 @@ class _SaleListScreenState extends State<SaleListScreen> {
       );
       return;
     }
-    
-    print('🔍 Navigating to sale detail with ID: $saleId');
-    
+
+    debugPrint('🔍 Navigating to sale detail with ID: $saleId');
+
     Navigator.pushNamed(
       context,
       '/sale-detail',
@@ -112,7 +114,8 @@ class _SaleListScreenState extends State<SaleListScreen> {
                         });
                       },
                       backgroundColor: Colors.grey.shade100,
-                      selectedColor: AppConstants.primaryColor.withOpacity(0.2),
+                      selectedColor:
+                          AppConstants.primaryColor.withValues(alpha: 0.2),
                       checkmarkColor: AppConstants.primaryColor,
                     ),
                   );
@@ -183,12 +186,12 @@ class _SaleListScreenState extends State<SaleListScreen> {
                 }
 
                 final saleGroup = filteredSales[index];
-                
+
                 // Skip if saleId is empty
                 if (saleGroup.saleId.isEmpty) {
                   return const SizedBox.shrink();
                 }
-                
+
                 return SaleGroupCard(
                   saleGroup: saleGroup,
                   onTap: () => _navigateToSaleDetail(saleGroup.saleId),
@@ -198,17 +201,18 @@ class _SaleListScreenState extends State<SaleListScreen> {
           );
         },
       ),
-      floatingActionButton: !(Provider.of<AuthProvider>(context).currentUser?.isAdmin ?? false)
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/new-sale').then((_) {
-                  _loadSales();
-                });
-              },
-              backgroundColor: AppConstants.primaryColor,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton:
+          !(Provider.of<AuthProvider>(context).currentUser?.isAdmin ?? false)
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/new-sale').then((_) {
+                      _loadSales();
+                    });
+                  },
+                  backgroundColor: AppConstants.primaryColor,
+                  child: const Icon(Icons.add),
+                )
+              : null,
     );
   }
 
@@ -235,7 +239,7 @@ class SaleGroupCard extends StatelessWidget {
     final displaySaleId = saleGroup.cleanSaleId;
     final displayCustomer = saleGroup.cleanCustomerName;
     final displayStaff = saleGroup.staffName;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
@@ -255,7 +259,7 @@ class SaleGroupCard extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: AppConstants.primaryColor.withOpacity(0.1),
+                      color: AppConstants.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -265,7 +269,6 @@ class SaleGroupCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,7 +302,6 @@ class SaleGroupCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -323,7 +325,6 @@ class SaleGroupCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
               if (saleGroup.items.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Wrap(

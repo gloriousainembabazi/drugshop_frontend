@@ -32,17 +32,24 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   final _batchNumberController = TextEditingController();
   final _barcodeController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
   DateTime? _expiryDate;
   Category? _selectedCategory;
   Supplier? _selectedSupplier;
   String _unitType = 'tablet';
-  
+
   bool _isLoading = false;
   String? _expiryError;
 
   final List<String> _unitTypes = [
-    'tablet', 'capsule', 'bottle', 'strip', 'box', 'pack', 'ml', 'g'
+    'tablet',
+    'capsule',
+    'bottle',
+    'strip',
+    'box',
+    'pack',
+    'ml',
+    'g'
   ];
 
   @override
@@ -95,14 +102,14 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     if (_expiryDate == null) {
       return 'Please select expiry date';
     }
-    
+
     final today = DateTime.now();
     final todayMidnight = DateTime(today.year, today.month, today.day);
-    
+
     if (_expiryDate!.isBefore(todayMidnight)) {
       return 'Expiry date cannot be in the past';
     }
-    
+
     return null;
   }
 
@@ -127,7 +134,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       setState(() {
         _expiryError = expiryValidation;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ $expiryValidation'),
@@ -170,11 +177,14 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       'unit_cost': double.parse(_unitCostController.text),
       'wholesale_price': double.parse(_wholesalePriceController.text),
       'retail_price': double.parse(_retailPriceController.text),
-      'discount_percentage': double.parse(_discountController.text.isEmpty ? '0' : _discountController.text),
+      'discount_percentage': double.parse(
+          _discountController.text.isEmpty ? '0' : _discountController.text),
       'quantity': int.parse(_quantityController.text),
       'min_stock_level': int.parse(_minStockController.text),
       'unit_type': _unitType,
-      'units_per_pack': int.parse(_unitsPerPackController.text.isEmpty ? '1' : _unitsPerPackController.text),
+      'units_per_pack': int.parse(_unitsPerPackController.text.isEmpty
+          ? '1'
+          : _unitsPerPackController.text),
       'barcode': _barcodeController.text.trim(),
       'expiry_date': _expiryDate!.toIso8601String().split('T')[0],
       'batch_number': _batchNumberController.text.trim(),
@@ -269,7 +279,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
+
                           CustomTextField(
                             controller: _nameController,
                             label: 'Medicine Name *',
@@ -277,14 +287,14 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             validator: Validators.required,
                           ),
                           const SizedBox(height: 16),
-                          
+
                           CustomTextField(
                             controller: _genericNameController,
                             label: 'Generic Name',
                             prefixIcon: Icons.science,
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Searchable Category Dropdown
                           SearchableDropdown<Category>(
                             items: provider.categories,
@@ -293,7 +303,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             hint: 'Search for a category...',
                             prefixIcon: Icons.category,
                             displayName: (category) => category.name,
-                            validator: (value) => value == null ? 'Please select a category' : null,
+                            validator: (value) => value == null
+                                ? 'Please select a category'
+                                : null,
                             onChanged: (category) {
                               setState(() {
                                 _selectedCategory = category;
@@ -302,7 +314,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             isLoading: provider.isLoading,
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Searchable Supplier Dropdown
                           SearchableDropdown<Supplier>(
                             items: provider.suppliers,
@@ -311,7 +323,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             hint: 'Search for a supplier...',
                             prefixIcon: Icons.business,
                             displayName: (supplier) => supplier.name,
-                            validator: (value) => value == null ? 'Please select a supplier' : null,
+                            validator: (value) => value == null
+                                ? 'Please select a supplier'
+                                : null,
                             onChanged: (supplier) {
                               setState(() {
                                 _selectedSupplier = supplier;
@@ -323,9 +337,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Pricing & Stock Card
                   Card(
                     child: Padding(
@@ -384,7 +398,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.42,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.42,
                                   child: CustomTextField(
                                     controller: _quantityController,
                                     label: 'Quantity *',
@@ -395,16 +410,18 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.42,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.42,
                                   child: DropdownButtonFormField<String>(
-                                    value: _unitType,
+                                    initialValue: _unitType,
                                     decoration: InputDecoration(
                                       labelText: 'Unit Type',
                                       prefixIcon: const Icon(Icons.science),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      contentPadding: const EdgeInsets.symmetric(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
                                         horizontal: 12,
                                         vertical: 12,
                                       ),
@@ -413,7 +430,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                                       return DropdownMenuItem(
                                         value: type,
                                         child: Text(
-                                          type[0].toUpperCase() + type.substring(1),
+                                          type[0].toUpperCase() +
+                                              type.substring(1),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       );
@@ -447,7 +465,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                           ),
 
                           // Profit Margin Preview
-                          if (_unitCostController.text.isNotEmpty && 
+                          if (_unitCostController.text.isNotEmpty &&
                               _retailPriceController.text.isNotEmpty)
                             Container(
                               margin: const EdgeInsets.only(top: 16),
@@ -457,20 +475,22 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Profit Margin:',
-                                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500),
                                   ),
                                   Text(
                                     '${_calculateProfitMargin()}%',
                                     style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
-                                      color: _calculateProfitMargin() > 20 
-                                          ? Colors.green 
-                                          : _calculateProfitMargin() > 10 
-                                              ? Colors.orange 
+                                      color: _calculateProfitMargin() > 20
+                                          ? Colors.green
+                                          : _calculateProfitMargin() > 10
+                                              ? Colors.orange
                                               : Colors.red,
                                     ),
                                   ),
@@ -481,9 +501,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Expiry and Batch Card
                   Card(
                     child: Padding(
@@ -500,7 +520,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
                           InkWell(
                             onTap: _selectDate,
                             child: InputDecorator(
@@ -517,21 +536,19 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                                     ? 'Select Date'
                                     : '${_expiryDate!.day}/${_expiryDate!.month}/${_expiryDate!.year}',
                                 style: GoogleFonts.poppins(
-                                  color: _expiryError != null ? Colors.red : null,
+                                  color:
+                                      _expiryError != null ? Colors.red : null,
                                 ),
                               ),
                             ),
                           ),
-                          
                           const SizedBox(height: 16),
-                          
                           CustomTextField(
                             controller: _batchNumberController,
                             label: 'Batch Number',
                             prefixIcon: Icons.qr_code,
                           ),
                           const SizedBox(height: 16),
-
                           Row(
                             children: [
                               Expanded(
@@ -544,7 +561,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                               const SizedBox(width: 8),
                               IconButton(
                                 onPressed: () async {
-                                  final result = await Navigator.pushNamed(context, '/qr-scanner');
+                                  final result = await Navigator.pushNamed(
+                                      context, '/qr-scanner');
                                   if (result != null && result is String) {
                                     setState(() {
                                       _barcodeController.text = result;
@@ -560,9 +578,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Description Card
                   Card(
                     child: Padding(
@@ -579,7 +597,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
                           CustomTextField(
                             controller: _descriptionController,
                             label: 'Description',
@@ -590,16 +607,16 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   CustomButton(
                     text: 'ADD MEDICINE',
                     onPressed: _handleSubmit,
                     isLoading: _isLoading,
                     isFullWidth: true,
                   ),
-                  
+
                   const SizedBox(height: 16),
                 ],
               ),

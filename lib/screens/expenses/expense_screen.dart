@@ -17,7 +17,8 @@ class ExpenseScreen extends StatefulWidget {
   _ExpenseScreenState createState() => _ExpenseScreenState();
 }
 
-class _ExpenseScreenState extends State<ExpenseScreen> with SingleTickerProviderStateMixin {
+class _ExpenseScreenState extends State<ExpenseScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late TabController _tabController;
 
@@ -32,7 +33,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> with SingleTickerProvider
         });
       }
     });
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<ExpenseProvider>(context, listen: false);
       provider.loadExpenses();
@@ -103,23 +104,27 @@ class ExpenseListTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.receipt_outlined, size: 64, color: Colors.grey.shade400),
+                Icon(Icons.receipt_outlined,
+                    size: 64, color: Colors.grey.shade400),
                 const SizedBox(height: 16),
                 Text(
                   'No expenses yet',
-                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey.shade600),
+                  style: GoogleFonts.poppins(
+                      fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Tap + to add an expense',
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: Colors.grey.shade500),
                 ),
               ],
             ),
           );
         }
 
-        final totalAmount = provider.expenses.fold(0.0, (sum, e) => sum + e.amount);
+        final totalAmount =
+            provider.expenses.fold(0.0, (sum, e) => sum + e.amount);
 
         return Column(
           children: [
@@ -134,11 +139,15 @@ class ExpenseListTab extends StatelessWidget {
                       children: [
                         Text(
                           'Total Expenses',
-                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade600),
+                          style: GoogleFonts.poppins(
+                              fontSize: 14, color: Colors.grey.shade600),
                         ),
                         Text(
                           'UGX ${totalAmount.toStringAsFixed(0)}',
-                          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                          style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red),
                         ),
                       ],
                     ),
@@ -155,7 +164,7 @@ class ExpenseListTab extends StatelessWidget {
                   itemCount: provider.expenses.length,
                   itemBuilder: (context, index) {
                     final expense = provider.expenses[index];
-                    
+
                     return Dismissible(
                       key: Key(expense.id.toString()),
                       direction: DismissDirection.endToStart,
@@ -163,14 +172,16 @@ class ExpenseListTab extends StatelessWidget {
                         color: Colors.red,
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
-                        child: const Icon(Icons.delete, color: Colors.white, size: 30),
+                        child: const Icon(Icons.delete,
+                            color: Colors.white, size: 30),
                       ),
                       confirmDismiss: (direction) async {
                         return await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Delete Expense'),
-                            content: Text('Are you sure you want to delete "${expense.description}"?'),
+                            content: Text(
+                                'Are you sure you want to delete "${expense.description}"?'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
@@ -178,7 +189,8 @@ class ExpenseListTab extends StatelessWidget {
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
-                                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red),
                                 child: const Text('DELETE'),
                               ),
                             ],
@@ -186,16 +198,20 @@ class ExpenseListTab extends StatelessWidget {
                         );
                       },
                       onDismissed: (direction) async {
-                        final success = await provider.deleteExpense(expense.id);
+                        final success =
+                            await provider.deleteExpense(expense.id);
                         if (context.mounted) {
                           if (success) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Expense deleted successfully')),
+                              const SnackBar(
+                                  content:
+                                      Text('Expense deleted successfully')),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(provider.error ?? 'Failed to delete expense'),
+                                content: Text(provider.error ??
+                                    'Failed to delete expense'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -209,7 +225,8 @@ class ExpenseListTab extends StatelessWidget {
                         child: ListTile(
                           title: Text(
                             expense.description,
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,8 +237,10 @@ class ExpenseListTab extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                DateFormat('dd/MM/yyyy').format(expense.paymentDate),
-                                style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey),
+                                DateFormat('dd/MM/yyyy')
+                                    .format(expense.paymentDate),
+                                style: GoogleFonts.poppins(
+                                    fontSize: 11, color: Colors.grey),
                               ),
                             ],
                           ),
@@ -231,7 +250,7 @@ class ExpenseListTab extends StatelessWidget {
                               Text(
                                 'UGX ${expense.amount.toStringAsFixed(0)}',
                                 style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.bold, 
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.red,
                                   fontSize: 14,
                                 ),
@@ -239,7 +258,8 @@ class ExpenseListTab extends StatelessWidget {
                               if (expense.paymentMethod.isNotEmpty)
                                 Text(
                                   expense.paymentMethodDisplay,
-                                  style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey),
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 10, color: Colors.grey),
                                 ),
                             ],
                           ),
@@ -259,7 +279,8 @@ class ExpenseListTab extends StatelessWidget {
     );
   }
 
-  void _showExpenseDetails(BuildContext context, Expense expense, ExpenseProvider provider) {
+  void _showExpenseDetails(
+      BuildContext context, Expense expense, ExpenseProvider provider) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -279,7 +300,8 @@ class ExpenseListTab extends StatelessWidget {
                   children: [
                     Text(
                       'Expense Details',
-                      style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                          fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     Row(
                       children: [
@@ -291,32 +313,40 @@ class ExpenseListTab extends StatelessWidget {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Delete Expense'),
-                                content: Text('Delete "${expense.description}"?'),
+                                content:
+                                    Text('Delete "${expense.description}"?'),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
                                     child: const Text('CANCEL'),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    style: TextButton.styleFrom(
+                                        foregroundColor: Colors.red),
                                     child: const Text('DELETE'),
                                   ),
                                 ],
                               ),
                             );
                             if (confirm == true && context.mounted) {
-                              final success = await provider.deleteExpense(expense.id);
+                              final success =
+                                  await provider.deleteExpense(expense.id);
                               if (context.mounted) {
                                 if (success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Expense deleted successfully')),
+                                    const SnackBar(
+                                        content: Text(
+                                            'Expense deleted successfully')),
                                   );
                                   await provider.loadExpenses();
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(provider.error ?? 'Failed to delete expense'),
+                                      content: Text(provider.error ??
+                                          'Failed to delete expense'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -337,12 +367,15 @@ class ExpenseListTab extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildDetailRow('Description', expense.description),
                 const SizedBox(height: 8),
-                _buildDetailRow('Amount', 'UGX ${expense.amount.toStringAsFixed(0)}'),
+                _buildDetailRow(
+                    'Amount', 'UGX ${expense.amount.toStringAsFixed(0)}'),
                 const SizedBox(height: 8),
-                _buildDetailRow('Date', DateFormat('dd/MM/yyyy').format(expense.paymentDate)),
+                _buildDetailRow('Date',
+                    DateFormat('dd/MM/yyyy').format(expense.paymentDate)),
                 const SizedBox(height: 8),
                 _buildDetailRow('Payment Method', expense.paymentMethodDisplay),
-                if (expense.supplier != null && expense.supplier!.isNotEmpty) ...[
+                if (expense.supplier != null &&
+                    expense.supplier!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   _buildDetailRow('Supplier', expense.supplier!),
                 ],
@@ -386,7 +419,8 @@ class ExpenseListTab extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 13),
+            style:
+                GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 13),
             textAlign: TextAlign.right,
           ),
         ),
@@ -407,7 +441,7 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   int? _selectedCategoryId;
   String _selectedPaymentMethod = 'cash';
   DateTime _selectedDate = DateTime.now();
@@ -432,25 +466,28 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
               children: [
                 Card(
                   elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         DropdownButtonFormField<int>(
-                          value: _selectedCategoryId,
+                          initialValue: _selectedCategoryId,
                           decoration: const InputDecoration(
                             labelText: 'Category *',
                             border: OutlineInputBorder(),
                           ),
                           items: provider.categories.map((c) {
                             return DropdownMenuItem(
-                              value: c.id, 
+                              value: c.id,
                               child: Text(c.name),
                             );
                           }).toList(),
-                          onChanged: (v) => setState(() => _selectedCategoryId = v),
-                          validator: (v) => v == null ? 'Select category' : null,
+                          onChanged: (v) =>
+                              setState(() => _selectedCategoryId = v),
+                          validator: (v) =>
+                              v == null ? 'Select category' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -459,7 +496,8 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
                             labelText: 'Description *',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                          validator: (v) =>
+                              v?.isEmpty == true ? 'Required' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -471,23 +509,30 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
                           keyboardType: TextInputType.number,
                           validator: (v) {
                             if (v?.isEmpty == true) return 'Required';
-                            if (double.tryParse(v!) == null) return 'Invalid amount';
+                            if (double.tryParse(v!) == null)
+                              return 'Invalid amount';
                             return null;
                           },
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          value: _selectedPaymentMethod,
+                          initialValue: _selectedPaymentMethod,
                           decoration: const InputDecoration(
                             labelText: 'Payment Method',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'cash', child: Text('Cash')),
-                            DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer')),
-                            DropdownMenuItem(value: 'mobile_money', child: Text('Mobile Money')),
+                            DropdownMenuItem(
+                                value: 'cash', child: Text('Cash')),
+                            DropdownMenuItem(
+                                value: 'bank_transfer',
+                                child: Text('Bank Transfer')),
+                            DropdownMenuItem(
+                                value: 'mobile_money',
+                                child: Text('Mobile Money')),
                           ],
-                          onChanged: (v) => setState(() => _selectedPaymentMethod = v!),
+                          onChanged: (v) =>
+                              setState(() => _selectedPaymentMethod = v!),
                         ),
                         const SizedBox(height: 12),
                         InkWell(
@@ -498,14 +543,16 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
                               firstDate: DateTime(2020),
                               lastDate: DateTime.now(),
                             );
-                            if (picked != null) setState(() => _selectedDate = picked);
+                            if (picked != null)
+                              setState(() => _selectedDate = picked);
                           },
                           child: InputDecorator(
                             decoration: const InputDecoration(
                               labelText: 'Date',
                               border: OutlineInputBorder(),
                             ),
-                            child: Text(DateFormat('dd/MM/yyyy').format(_selectedDate)),
+                            child: Text(
+                                DateFormat('dd/MM/yyyy').format(_selectedDate)),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -551,7 +598,8 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
                         'description': _descriptionController.text.trim(),
                         'amount': double.parse(_amountController.text.trim()),
                         'payment_method': _selectedPaymentMethod,
-                        'payment_date': _selectedDate.toIso8601String().split('T')[0],
+                        'payment_date':
+                            _selectedDate.toIso8601String().split('T')[0],
                         'notes': _notesController.text.trim(),
                       });
 
@@ -579,7 +627,8 @@ class _AddExpenseTabState extends State<AddExpenseTab> {
                       } else if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(provider.error ?? '❌ Failed to save expense'),
+                            content: Text(
+                                provider.error ?? '❌ Failed to save expense'),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -609,16 +658,19 @@ class ExpenseCategoriesTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.category_outlined, size: 64, color: Colors.grey.shade400),
+                Icon(Icons.category_outlined,
+                    size: 64, color: Colors.grey.shade400),
                 const SizedBox(height: 16),
                 Text(
                   'No categories yet',
-                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey.shade600),
+                  style: GoogleFonts.poppins(
+                      fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Categories will appear here',
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: Colors.grey.shade500),
                 ),
               ],
             ),
@@ -632,12 +684,13 @@ class ExpenseCategoriesTab extends StatelessWidget {
             final category = provider.categories[index];
             return Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(Icons.category, color: AppColors.primaryGreen),
@@ -647,7 +700,9 @@ class ExpenseCategoriesTab extends StatelessWidget {
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
-                  category.description.isNotEmpty ? category.description : 'No description',
+                  category.description.isNotEmpty
+                      ? category.description
+                      : 'No description',
                   style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
                 ),
               ),

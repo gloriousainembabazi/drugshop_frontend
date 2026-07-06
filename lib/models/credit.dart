@@ -117,7 +117,7 @@ class CreditSale {
 
   factory CreditSale.fromJson(Map<String, dynamic> json) {
     List<CreditSaleItem> items = [];
-    
+
     if (json['items'] != null) {
       items = (json['items'] as List)
           .map((item) => CreditSaleItem.fromJson(item))

@@ -6,12 +6,12 @@ class AppColors {
   static const Color primaryLight = Color(0xFFE8F5E0);
   static const Color primaryDark = Color(0xFF4A7A34);
   static const Color veryLightGreen = Color(0xFFF1F8E9);
-  
+
   // Accent Colors
   static const Color accentBlue = Color(0xFF2196F3);
   static const Color accentOrange = Color(0xFFFF9800);
   static const Color accentRed = Color(0xFFF44336);
-  
+
   // Neutral Colors
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
@@ -22,13 +22,13 @@ class AppColors {
   static const Color backgroundLight = Color(0xFFF8FAFC);
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color dividerColor = Color(0xFFECF0F1);
-  
+
   // Status Colors
   static const Color success = Color(0xFF2ECC71);
   static const Color warning = Color(0xFFF39C12);
   static const Color error = Color(0xFFE74C3C);
   static const Color info = Color(0xFF3498DB);
-  
+
   // Gradient
   static const Gradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -46,14 +46,14 @@ class AppStrings {
   static const String tagline = 'Your Trusted Pharmacy Partner';
   static const String welcome = 'Welcome to His Grace Drugshop';
   static const String loading = 'Loading...';
-  
+
   static const String dashboard = 'Dashboard';
   static const String medicines = 'Medicines';
   static const String sales = 'Sales';
   static const String reports = 'Reports';
   static const String profile = 'Profile';
   static const String settings = 'Settings';
-  
+
   static const String add = 'Add';
   static const String edit = 'Edit';
   static const String delete = 'Delete';
@@ -80,8 +80,9 @@ class StorageKeys {
 
 class AppConstants {
   // API Base URL
-   static const String baseUrl = 'http://localhost:8000/api';
-  
+  static const String baseUrl =
+      'https://drugshop-backend-1.onrender.com/api/auth';
+
   // API Endpoints
   static const String loginEndpoint = '/auth/login/';
   static const String logoutEndpoint = '/auth/logout/';
@@ -102,7 +103,7 @@ class AppConstants {
   static const String tokenKey = StorageKeys.token;
   static const String userKey = StorageKeys.user;
   static const String themeKey = StorageKeys.theme;
-  
+
   // Spacing
   static const double paddingSmallest = 4.0;
   static const double paddingSmall = 8.0;
@@ -133,7 +134,7 @@ class AppConstants {
   static const double elevationSmall = 2.0;
   static const double elevationMedium = 4.0;
   static const double elevationLarge = 8.0;
-  
+
   // Colors (for backward compatibility)
   static const Color primaryColor = AppColors.primaryGreen;
 }

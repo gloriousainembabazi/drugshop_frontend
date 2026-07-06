@@ -102,7 +102,7 @@ class MedicineProvider extends ChangeNotifier {
       }
     } catch (e) {
       _error = 'Failed to load medicines: $e';
-      print('Medicine Error: $e');
+      debugPrint('Medicine Error: $e');
     }
 
     _isLoading = false;
@@ -135,7 +135,7 @@ class MedicineProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Low Stock Error: $e');
+      debugPrint('Low Stock Error: $e');
     }
   }
 
@@ -165,7 +165,7 @@ class MedicineProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Expiring Error: $e');
+      debugPrint('Expiring Error: $e');
     }
   }
 
@@ -195,7 +195,7 @@ class MedicineProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Expired Error: $e');
+      debugPrint('Expired Error: $e');
     }
   }
 
@@ -206,7 +206,8 @@ class MedicineProvider extends ChangeNotifier {
       final response = await _apiService.getCategories();
 
       if (response['success'] == true) {
-        final List<dynamic> data = response['data'] is List ? response['data'] : [];
+        final List<dynamic> data =
+            response['data'] is List ? response['data'] : [];
 
         _categories = data
             .map(
@@ -217,7 +218,7 @@ class MedicineProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Category Error: $e');
+      debugPrint('Category Error: $e');
     }
   }
 
@@ -228,7 +229,8 @@ class MedicineProvider extends ChangeNotifier {
       final response = await _apiService.getSuppliers();
 
       if (response['success'] == true) {
-        final List<dynamic> data = response['data'] is List ? response['data'] : [];
+        final List<dynamic> data =
+            response['data'] is List ? response['data'] : [];
 
         _suppliers = data
             .map(
@@ -239,7 +241,7 @@ class MedicineProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Supplier Error: $e');
+      debugPrint('Supplier Error: $e');
     }
   }
 
@@ -255,7 +257,7 @@ class MedicineProvider extends ChangeNotifier {
 
       return null;
     } catch (e) {
-      print('Get Medicine Error: $e');
+      debugPrint('Get Medicine Error: $e');
       return null;
     }
   }

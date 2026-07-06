@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/medicine_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/custom_textfield.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../utils/constants.dart';
 
@@ -15,7 +14,8 @@ class StockTakeScreen extends StatefulWidget {
   _StockTakeScreenState createState() => _StockTakeScreenState();
 }
 
-class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProviderStateMixin {
+class _StockTakeScreenState extends State<StockTakeScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   late TabController _tabController;
   final List<Map<String, dynamic>> _countItems = [];
@@ -48,10 +48,10 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
 
   Future<void> _loadMedicines() async {
     setState(() => _isLoading = true);
-    
+
     final provider = Provider.of<MedicineProvider>(context, listen: false);
     await provider.loadMedicines(refresh: true);
-    
+
     // Initialize count items with current quantities
     setState(() {
       _countItems.clear();
@@ -73,24 +73,33 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
   List<Map<String, dynamic>> get _filteredItems {
     if (_selectedFilter == 'All') return _countItems;
     if (_selectedFilter == 'With Variance') {
-      return _countItems.where((item) => item['systemQty'] != item['physicalQty']).toList();
+      return _countItems
+          .where((item) => item['systemQty'] != item['physicalQty'])
+          .toList();
     }
     if (_selectedFilter == 'No Variance') {
-      return _countItems.where((item) => item['systemQty'] == item['physicalQty']).toList();
+      return _countItems
+          .where((item) => item['systemQty'] == item['physicalQty'])
+          .toList();
     }
     return _countItems;
   }
 
   int get _totalItems => _countItems.length;
-  int get _itemsWithVariance => _countItems.where((item) => item['systemQty'] != item['physicalQty']).length;
-  int get _totalSystemQuantity => _countItems.fold<int>(0, (sum, item) => sum + (item['systemQty'] as int));
-  int get _totalPhysicalQuantity => _countItems.fold<int>(0, (sum, item) => sum + (item['physicalQty'] as int));
+  int get _itemsWithVariance => _countItems
+      .where((item) => item['systemQty'] != item['physicalQty'])
+      .length;
+  int get _totalSystemQuantity =>
+      _countItems.fold<int>(0, (sum, item) => sum + (item['systemQty'] as int));
+  int get _totalPhysicalQuantity => _countItems.fold<int>(
+      0, (sum, item) => sum + (item['physicalQty'] as int));
   int get _totalVariance => _totalPhysicalQuantity - _totalSystemQuantity;
 
   void _updatePhysicalQty(int index, int value) {
     setState(() {
       _countItems[index]['physicalQty'] = value;
-      _countItems[index]['hasVariance'] = _countItems[index]['systemQty'] != value;
+      _countItems[index]['hasVariance'] =
+          _countItems[index]['systemQty'] != value;
     });
   }
 
@@ -189,21 +198,26 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                     final item = discrepancies[index];
                     final variance = item['physicalQty'] - item['systemQty'];
                     final isPositive = variance > 0;
-                    
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
-                      color: isPositive ? Colors.green.shade50 : Colors.red.shade50,
+                      color: isPositive
+                          ? Colors.green.shade50
+                          : Colors.red.shade50,
                       child: ListTile(
                         title: Text(
                           item['name'],
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          style:
+                              GoogleFonts.poppins(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('System: ${item['systemQty']} | Physical: ${item['physicalQty']}'),
+                            Text(
+                                'System: ${item['systemQty']} | Physical: ${item['physicalQty']}'),
                             if (item['notes'].isNotEmpty)
-                              Text('Note: ${item['notes']}', style: const TextStyle(fontSize: 12)),
+                              Text('Note: ${item['notes']}',
+                                  style: const TextStyle(fontSize: 12)),
                           ],
                         ),
                         trailing: Container(
@@ -240,7 +254,8 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
             text: 'SAVE COUNT',
             onPressed: () {
               Navigator.pop(context);
-              _showSuccessDialog('✅ Stock count saved successfully!\n${discrepancies.length} variance(s) recorded.');
+              _showSuccessDialog(
+                  '✅ Stock count saved successfully!\n${discrepancies.length} variance(s) recorded.');
             },
           ),
         ],
@@ -248,10 +263,11 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
     );
   }
 
-  void _showItemDetails(BuildContext context, Map<String, dynamic> item, int index) {
+  void _showItemDetails(
+      BuildContext context, Map<String, dynamic> item, int index) {
     final variance = item['physicalQty'] - item['systemQty'];
     final isPositive = variance > 0;
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -271,8 +287,10 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                 ),
               ),
               const SizedBox(height: 24),
-              _buildDetailRow('System Quantity', '${item['systemQty']} ${item['unitType']}s'),
-              _buildDetailRow('Physical Count', '${item['physicalQty']} ${item['unitType']}s'),
+              _buildDetailRow('System Quantity',
+                  '${item['systemQty']} ${item['unitType']}s'),
+              _buildDetailRow('Physical Count',
+                  '${item['physicalQty']} ${item['unitType']}s'),
               _buildDetailRow(
                 'Variance',
                 '${isPositive ? '+' : ''}$variance',
@@ -421,7 +439,8 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                 int count = 0;
                 if (filter == 'All') count = _totalItems;
                 if (filter == 'With Variance') count = _itemsWithVariance;
-                if (filter == 'No Variance') count = _totalItems - _itemsWithVariance;
+                if (filter == 'No Variance')
+                  count = _totalItems - _itemsWithVariance;
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -434,7 +453,8 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                       });
                     },
                     backgroundColor: Colors.grey.shade100,
-                    selectedColor: AppColors.primaryGreen.withOpacity(0.2),
+                    selectedColor:
+                        AppColors.primaryGreen.withValues(alpha: 0.2),
                     checkmarkColor: AppColors.primaryGreen,
                   ),
                 );
@@ -472,17 +492,19 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                   itemBuilder: (context, index) {
                     final item = filteredItems[index];
                     final originalIndex = _countItems.indexOf(item);
-                    final hasVariance = item['systemQty'] != item['physicalQty'];
-                    
+                    final hasVariance =
+                        item['systemQty'] != item['physicalQty'];
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
-                      color: hasVariance 
-                          ? (item['physicalQty'] > item['systemQty'] 
-                              ? Colors.green.shade50 
+                      color: hasVariance
+                          ? (item['physicalQty'] > item['systemQty']
+                              ? Colors.green.shade50
                               : Colors.red.shade50)
                           : null,
                       child: InkWell(
-                        onTap: () => _showItemDetails(context, item, originalIndex),
+                        onTap: () =>
+                            _showItemDetails(context, item, originalIndex),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -506,7 +528,8 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: item['physicalQty'] > item['systemQty']
+                                        color: item['physicalQty'] >
+                                                item['systemQty']
                                             ? Colors.green
                                             : Colors.red,
                                         borderRadius: BorderRadius.circular(12),
@@ -555,14 +578,17 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: TextFormField(
-                                      initialValue: item['physicalQty'].toString(),
+                                      initialValue:
+                                          item['physicalQty'].toString(),
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         labelText: 'Physical Count',
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
-                                        contentPadding: const EdgeInsets.symmetric(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
                                           horizontal: 12,
                                           vertical: 8,
                                         ),
@@ -588,7 +614,8 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                                     vertical: 8,
                                   ),
                                 ),
-                                onChanged: (value) => _updateNotes(originalIndex, value),
+                                onChanged: (value) =>
+                                    _updateNotes(originalIndex, value),
                               ),
                             ],
                           ),
@@ -622,10 +649,13 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                   ),
                   const SizedBox(height: 16),
                   _buildSummaryRow('Total Items', '$_totalItems'),
-                  _buildSummaryRow('Items with Variance', '$_itemsWithVariance'),
+                  _buildSummaryRow(
+                      'Items with Variance', '$_itemsWithVariance'),
                   const Divider(),
-                  _buildSummaryRow('System Total', '$_totalSystemQuantity units'),
-                  _buildSummaryRow('Physical Total', '$_totalPhysicalQuantity units'),
+                  _buildSummaryRow(
+                      'System Total', '$_totalSystemQuantity units'),
+                  _buildSummaryRow(
+                      'Physical Total', '$_totalPhysicalQuantity units'),
                   _buildSummaryRow(
                     'Total Variance',
                     '${_totalVariance > 0 ? '+' : ''}$_totalVariance units',
@@ -660,14 +690,17 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
                     ),
                     const SizedBox(height: 12),
                     ..._countItems
-                        .where((item) => item['systemQty'] != item['physicalQty'])
+                        .where(
+                            (item) => item['systemQty'] != item['physicalQty'])
                         .map((item) {
                       final variance = item['physicalQty'] - item['systemQty'];
                       final isPositive = variance > 0;
-                      
+
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
-                        color: isPositive ? Colors.green.shade50 : Colors.red.shade50,
+                        color: isPositive
+                            ? Colors.green.shade50
+                            : Colors.red.shade50,
                         child: ListTile(
                           title: Text(item['name']),
                           subtitle: Text(
@@ -728,7 +761,8 @@ class _StockTakeScreenState extends State<StockTakeScreen> with SingleTickerProv
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade600),
+            style:
+                GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade600),
           ),
           Text(
             value,

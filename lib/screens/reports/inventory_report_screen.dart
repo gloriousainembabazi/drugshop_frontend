@@ -31,10 +31,11 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
-    
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
+
     await Future.wait([
       reportProvider.loadInventoryReport(),
       reportProvider.loadLowStockReport(),
@@ -44,21 +45,22 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
       medicineProvider.loadExpiredMedicines(),
       medicineProvider.loadMedicines(),
     ]);
-    
+
     setState(() => _isLoading = false);
   }
 
   Future<void> _downloadPDF() async {
     final reportProvider = Provider.of<ReportProvider>(context, listen: false);
     final report = reportProvider.inventoryReport;
-    
+
     if (report != null) {
       final content = PdfService.buildInventoryReportContent(report);
       await PdfService.generateAndDownload('Inventory Report', content);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inventory report downloaded successfully')),
+          const SnackBar(
+              content: Text('Inventory report downloaded successfully')),
         );
       }
     }
@@ -140,7 +142,8 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppConstants.primaryColor : Colors.grey.shade200,
+            color:
+                isSelected ? AppConstants.primaryColor : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -177,212 +180,219 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
     }
   }
 
-  Widget _buildOverviewTab(Map<String, dynamic>? inventory, MedicineProvider medicineProvider) {
-  if (inventory == null) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inventory, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'No inventory data available',
-            style: GoogleFonts.poppins(color: Colors.grey.shade600),
-          ),
-        ],
-      ),
-    );
-  }
-
-  final summary = inventory['summary'];
-  
-  final totalItems = summary['total_medicines'] ?? 0;
-  final totalActiveItems = summary['total_active_medicines'] ?? 0;
-  final inStockItems = summary['in_stock'] ?? 0;
-  final lowStockItems = summary['low_stock'] ?? 0;
-  final outOfStockItems = summary['out_of_stock'] ?? 0;
-  final validItems = summary['valid'] ?? 0;
-  final expiredItems = summary['expired'] ?? 0;
-  final expiringSoon = summary['expiring_soon'] ?? 0;
-  final totalValue = (summary['total_value'] ?? 0) as num;
-  final totalValueWithExpired = (summary['total_value_with_expired'] ?? 0) as num;
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Definitions Card
-      Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.shade200),
-        ),
+  Widget _buildOverviewTab(
+      Map<String, dynamic>? inventory, MedicineProvider medicineProvider) {
+    if (inventory == null) {
+      return Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Status Definitions',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Colors.blue.shade700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            Icon(Icons.inventory, size: 80, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
             Text(
-              '• Total Products: All medicines (including expired)\n'
-              '• Active Products: Non-expired medicines only\n'
-              '• In Stock: Above minimum level (excludes expired)\n'
-              '• Low Stock: At or below minimum level (excludes expired)\n'
-              '• Out of Stock: Quantity = 0 (excludes expired)\n'
-              '• Valid: Not expired, >30 days remaining\n'
-              '• Expired: Past expiry date (not counted in stock)\n'
-              '• Expiring Soon: Within 30 days (not counted in stock)',
-              style: GoogleFonts.poppins(fontSize: 11, color: Colors.blue.shade700),
+              'No inventory data available',
+              style: GoogleFonts.poppins(color: Colors.grey.shade600),
             ),
           ],
         ),
-      ),
-      
-      // Summary Cards
-      GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 1.2,
-        children: [
-          _buildSummaryCardWithTooltip(
-            'Total Products',
-            '$totalItems',
-            Icons.inventory,
-            Colors.blue,
-            'All medicines in database (including expired)',
-          ),
-          _buildSummaryCardWithTooltip(
-            'Active Products',
-            '$totalActiveItems',
-            Icons.verified,
-            Colors.teal,
-            'Non-expired medicines only',
-          ),
-          _buildSummaryCardWithTooltip(
-            'Total Value',
-            'UGX ${totalValue.toStringAsFixed(0)}',
-            Icons.attach_money,
-            Colors.green,
-            'Value of active/non-expired stock',
-          ),
-          _buildSummaryCardWithTooltip(
-            'In Stock',
-            '$inStockItems',
-            Icons.check_circle,
-            Colors.green,
-            'Active products above minimum level',
-          ),
-          _buildSummaryCardWithTooltip(
-            'Low Stock',
-            '$lowStockItems',
-            Icons.warning,
-            Colors.orange,
-            'Active products need reordering',
-          ),
-          _buildSummaryCardWithTooltip(
-            'Out of Stock',
-            '$outOfStockItems',
-            Icons.dangerous,
-            Colors.red,
-            'Active products with zero quantity',
-          ),
-          _buildSummaryCardWithTooltip(
-            'Expiring Soon',
-            '$expiringSoon',
-            Icons.event,
-            Colors.orange,
-            'Expires within 30 days',
-          ),
-          _buildSummaryCardWithTooltip(
-            'Expired',
-            '$expiredItems',
-            Icons.cancel,
-            Colors.red,
-            'Past expiry date (excluded from stock)',
-          ),
-        ],
-      ),
+      );
+    }
 
-      const SizedBox(height: 24),
+    final summary = inventory['summary'];
 
-      // Category Breakdown
-      if (inventory['by_category'] != null && inventory['by_category'].isNotEmpty) ...[
-        Text(
-          'Category Breakdown (Active Products Only)',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+    final totalItems = summary['total_medicines'] ?? 0;
+    final totalActiveItems = summary['total_active_medicines'] ?? 0;
+    final inStockItems = summary['in_stock'] ?? 0;
+    final lowStockItems = summary['low_stock'] ?? 0;
+    final outOfStockItems = summary['out_of_stock'] ?? 0;
+    final validItems = summary['valid'] ?? 0;
+    final expiredItems = summary['expired'] ?? 0;
+    final expiringSoon = summary['expiring_soon'] ?? 0;
+    final totalValue = (summary['total_value'] ?? 0) as num;
+    final totalValueWithExpired =
+        (summary['total_value_with_expired'] ?? 0) as num;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Definitions Card
+        Container(
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info_outline,
+                      color: Colors.blue.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Status Definitions',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '• Total Products: All medicines (including expired)\n'
+                '• Active Products: Non-expired medicines only\n'
+                '• In Stock: Above minimum level (excludes expired)\n'
+                '• Low Stock: At or below minimum level (excludes expired)\n'
+                '• Out of Stock: Quantity = 0 (excludes expired)\n'
+                '• Valid: Not expired, >30 days remaining\n'
+                '• Expired: Past expiry date (not counted in stock)\n'
+                '• Expiring Soon: Within 30 days (not counted in stock)',
+                style: GoogleFonts.poppins(
+                    fontSize: 11, color: Colors.blue.shade700),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-        ListView.builder(
+
+        // Summary Cards
+        GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: inventory['by_category'].length,
-          itemBuilder: (context, index) {
-            final category = inventory['by_category'][index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.blue.shade100,
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(color: Colors.blue.shade700),
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.2,
+          children: [
+            _buildSummaryCardWithTooltip(
+              'Total Products',
+              '$totalItems',
+              Icons.inventory,
+              Colors.blue,
+              'All medicines in database (including expired)',
+            ),
+            _buildSummaryCardWithTooltip(
+              'Active Products',
+              '$totalActiveItems',
+              Icons.verified,
+              Colors.teal,
+              'Non-expired medicines only',
+            ),
+            _buildSummaryCardWithTooltip(
+              'Total Value',
+              'UGX ${totalValue.toStringAsFixed(0)}',
+              Icons.attach_money,
+              Colors.green,
+              'Value of active/non-expired stock',
+            ),
+            _buildSummaryCardWithTooltip(
+              'In Stock',
+              '$inStockItems',
+              Icons.check_circle,
+              Colors.green,
+              'Active products above minimum level',
+            ),
+            _buildSummaryCardWithTooltip(
+              'Low Stock',
+              '$lowStockItems',
+              Icons.warning,
+              Colors.orange,
+              'Active products need reordering',
+            ),
+            _buildSummaryCardWithTooltip(
+              'Out of Stock',
+              '$outOfStockItems',
+              Icons.dangerous,
+              Colors.red,
+              'Active products with zero quantity',
+            ),
+            _buildSummaryCardWithTooltip(
+              'Expiring Soon',
+              '$expiringSoon',
+              Icons.event,
+              Colors.orange,
+              'Expires within 30 days',
+            ),
+            _buildSummaryCardWithTooltip(
+              'Expired',
+              '$expiredItems',
+              Icons.cancel,
+              Colors.red,
+              'Past expiry date (excluded from stock)',
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // Category Breakdown
+        if (inventory['by_category'] != null &&
+            inventory['by_category'].isNotEmpty) ...[
+          Text(
+            'Category Breakdown (Active Products Only)',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: inventory['by_category'].length,
+            itemBuilder: (context, index) {
+              final category = inventory['by_category'][index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue.shade100,
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(color: Colors.blue.shade700),
+                    ),
+                  ),
+                  title: Text(
+                    category['category'] ?? 'Uncategorized',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle:
+                      Text('${category['total_items'] ?? 0} active items'),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'UGX ${((category['total_value'] ?? 0) as num).toStringAsFixed(0)}',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          color: AppConstants.primaryColor,
+                        ),
+                      ),
+                      Text(
+                        'Avg: UGX ${((category['avg_price'] ?? 0) as num).toStringAsFixed(0)}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                title: Text(
-                  category['category'] ?? 'Uncategorized',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text('${category['total_items'] ?? 0} active items'),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'UGX ${((category['total_value'] ?? 0) as num).toStringAsFixed(0)}',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        color: AppConstants.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'Avg: UGX ${((category['avg_price'] ?? 0) as num).toStringAsFixed(0)}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          ),
+        ],
       ],
-    ],
-  );
-}
+    );
+  }
 
-  Widget _buildSummaryCardWithTooltip(String title, String value, IconData icon, Color color, String tooltip) {
+  Widget _buildSummaryCardWithTooltip(
+      String title, String value, IconData icon, Color color, String tooltip) {
     return Tooltip(
       message: tooltip,
       child: Container(
@@ -424,7 +434,8 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
     );
   }
 
-  Widget _buildLowStockTab(ReportProvider reportProvider, MedicineProvider medicineProvider) {
+  Widget _buildLowStockTab(
+      ReportProvider reportProvider, MedicineProvider medicineProvider) {
     final lowStockMedicines = medicineProvider.lowStockMedicines;
 
     if (lowStockMedicines.isEmpty) {
@@ -434,9 +445,15 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
           children: [
             Icon(Icons.check_circle, size: 80, color: Colors.green.shade300),
             const SizedBox(height: 16),
-            Text('No low stock items', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+            Text('No low stock items',
+                style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600)),
             const SizedBox(height: 8),
-            Text('All medicines are above minimum stock levels', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+            Text('All medicines are above minimum stock levels',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: Colors.grey.shade500)),
           ],
         ),
       );
@@ -466,7 +483,9 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Text('Low Stock Alert (${lowStockMedicines.length} items)', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Low Stock Alert (${lowStockMedicines.length} items)',
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         ListView.builder(
           shrinkWrap: true,
@@ -478,18 +497,27 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               color: Colors.orange.shade50,
               child: ListTile(
-                leading: CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.warning, color: Colors.white)),
-                title: Text(medicine.name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                leading: CircleAvatar(
+                    backgroundColor: Colors.orange,
+                    child: Icon(Icons.warning, color: Colors.white)),
+                title: Text(medicine.name,
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                 subtitle: Text('Batch: ${medicine.batchNumber}'),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Stock: ${medicine.quantity}', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.orange.shade700)),
-                    Text('Min: ${medicine.minStockLevel}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                    Text('Stock: ${medicine.quantity}',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange.shade700)),
+                    Text('Min: ${medicine.minStockLevel}',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: Colors.grey.shade600)),
                   ],
                 ),
-                onTap: () => Navigator.pushNamed(context, '/medicine-detail', arguments: {'id': medicine.id}),
+                onTap: () => Navigator.pushNamed(context, '/medicine-detail',
+                    arguments: {'id': medicine.id}),
               ),
             );
           },
@@ -498,7 +526,8 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
     );
   }
 
-  Widget _buildExpiringTab(ReportProvider reportProvider, MedicineProvider medicineProvider) {
+  Widget _buildExpiringTab(
+      ReportProvider reportProvider, MedicineProvider medicineProvider) {
     final expiring = medicineProvider.expiringMedicines;
 
     if (expiring.isEmpty) {
@@ -508,9 +537,15 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
           children: [
             Icon(Icons.event_available, size: 80, color: Colors.green.shade300),
             const SizedBox(height: 16),
-            Text('No expiring medicines', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+            Text('No expiring medicines',
+                style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600)),
             const SizedBox(height: 8),
-            Text('All medicines have more than 30 days until expiry', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+            Text('All medicines have more than 30 days until expiry',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: Colors.grey.shade500)),
           ],
         ),
       );
@@ -521,17 +556,25 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue.shade200)),
+          decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade200)),
           child: Row(
             children: [
               Icon(Icons.event, color: Colors.blue.shade700),
               const SizedBox(width: 12),
-              Expanded(child: Text('${expiring.length} medicine(s) will expire within the next 30 days.', style: GoogleFonts.poppins(color: Colors.blue.shade700))),
+              Expanded(
+                  child: Text(
+                      '${expiring.length} medicine(s) will expire within the next 30 days.',
+                      style: GoogleFonts.poppins(color: Colors.blue.shade700))),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        Text('Expiring Soon (${expiring.length} items)', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Expiring Soon (${expiring.length} items)',
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         ListView.builder(
           shrinkWrap: true,
@@ -545,18 +588,35 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               color: isUrgent ? Colors.red.shade50 : Colors.blue.shade50,
               child: ListTile(
-                leading: CircleAvatar(backgroundColor: isUrgent ? Colors.red : Colors.blue, child: Icon(isUrgent ? Icons.dangerous : Icons.event, color: Colors.white)),
-                title: Text(medicine.name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                leading: CircleAvatar(
+                    backgroundColor: isUrgent ? Colors.red : Colors.blue,
+                    child: Icon(isUrgent ? Icons.dangerous : Icons.event,
+                        color: Colors.white)),
+                title: Text(medicine.name,
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                 subtitle: Text('Batch: ${medicine.batchNumber}'),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(DateFormat('yyyy-MM-dd').format(medicine.expiryDate), style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: isUrgent ? Colors.red : Colors.blue.shade700)),
-                    Text('$daysLeft days left', style: GoogleFonts.poppins(fontSize: 12, color: isUrgent ? Colors.red.shade700 : Colors.grey.shade600, fontWeight: isUrgent ? FontWeight.w600 : FontWeight.normal)),
+                    Text(DateFormat('yyyy-MM-dd').format(medicine.expiryDate),
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color:
+                                isUrgent ? Colors.red : Colors.blue.shade700)),
+                    Text('$daysLeft days left',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: isUrgent
+                                ? Colors.red.shade700
+                                : Colors.grey.shade600,
+                            fontWeight: isUrgent
+                                ? FontWeight.w600
+                                : FontWeight.normal)),
                   ],
                 ),
-                onTap: () => Navigator.pushNamed(context, '/medicine-detail', arguments: {'id': medicine.id}),
+                onTap: () => Navigator.pushNamed(context, '/medicine-detail',
+                    arguments: {'id': medicine.id}),
               ),
             );
           },
@@ -565,7 +625,8 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
     );
   }
 
-  Widget _buildExpiredTab(ReportProvider reportProvider, MedicineProvider medicineProvider) {
+  Widget _buildExpiredTab(
+      ReportProvider reportProvider, MedicineProvider medicineProvider) {
     final expired = medicineProvider.expiredMedicines;
 
     if (expired.isEmpty) {
@@ -575,9 +636,15 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
           children: [
             Icon(Icons.verified, size: 80, color: Colors.green.shade300),
             const SizedBox(height: 16),
-            Text('No expired medicines', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+            Text('No expired medicines',
+                style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600)),
             const SizedBox(height: 8),
-            Text('All medicines are within their expiry date', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+            Text('All medicines are within their expiry date',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: Colors.grey.shade500)),
           ],
         ),
       );
@@ -588,17 +655,25 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.red.shade200)),
+          decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.shade200)),
           child: Row(
             children: [
               Icon(Icons.dangerous, color: Colors.red.shade700),
               const SizedBox(width: 12),
-              Expanded(child: Text('Warning: ${expired.length} medicine(s) have expired and should be removed from inventory.', style: GoogleFonts.poppins(color: Colors.red.shade700))),
+              Expanded(
+                  child: Text(
+                      'Warning: ${expired.length} medicine(s) have expired and should be removed from inventory.',
+                      style: GoogleFonts.poppins(color: Colors.red.shade700))),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        Text('Expired Medicines (${expired.length} items)', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text('Expired Medicines (${expired.length} items)',
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         ListView.builder(
           shrinkWrap: true,
@@ -610,18 +685,29 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               color: Colors.red.shade50,
               child: ListTile(
-                leading: const CircleAvatar(backgroundColor: Colors.red, child: Icon(Icons.dangerous, color: Colors.white)),
-                title: Text(medicine.name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.red.shade700)),
+                leading: const CircleAvatar(
+                    backgroundColor: Colors.red,
+                    child: Icon(Icons.dangerous, color: Colors.white)),
+                title: Text(medicine.name,
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red.shade700)),
                 subtitle: Text('Batch: ${medicine.batchNumber}'),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Expired: ${DateFormat('yyyy-MM-dd').format(medicine.expiryDate)}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.red.shade700)),
-                    Text('Qty: ${medicine.quantity}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                    Text(
+                        'Expired: ${DateFormat('yyyy-MM-dd').format(medicine.expiryDate)}',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: Colors.red.shade700)),
+                    Text('Qty: ${medicine.quantity}',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: Colors.grey.shade600)),
                   ],
                 ),
-                onTap: () => Navigator.pushNamed(context, '/medicine-detail', arguments: {'id': medicine.id}),
+                onTap: () => Navigator.pushNamed(context, '/medicine-detail',
+                    arguments: {'id': medicine.id}),
               ),
             );
           },

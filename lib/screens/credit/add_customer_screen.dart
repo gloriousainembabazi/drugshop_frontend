@@ -133,10 +133,10 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 text: _isLoading ? 'SAVING...' : 'SAVE CUSTOMER',
                 isFullWidth: true,
                 isLoading: _isLoading,
-                onPressed: _isLoading 
-                    ? null 
+                onPressed: _isLoading
+                    ? null
                     : () {
-                        _saveCustomer();  // ✅ This works because it returns void
+                        _saveCustomer(); // ✅ This works because it returns void
                       },
               ),
             ],

@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 // lib/providers/credit_provider.dart
 
 import 'package:flutter/material.dart';
-import '../models/credit.dart';  // Add this import
+import '../models/credit.dart'; // Add this import
 import '../services/api_service.dart';
 
 class CreditProvider extends ChangeNotifier {
@@ -28,7 +29,8 @@ class CreditProvider extends ChangeNotifier {
       final response = await _apiService.getCustomers();
 
       if (response['success'] == true) {
-        final List<dynamic> data = response['data'] is List ? response['data'] : [];
+        final List<dynamic> data =
+            response['data'] is List ? response['data'] : [];
 
         _customers = data.map((e) => Customer.fromJson(e)).toList();
 
@@ -43,13 +45,14 @@ class CreditProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
-  
+
   Future<bool> updateCustomer(int id, Map<String, dynamic> customerData) async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      final response = await _apiService.put('/api/credit/customers/$id/', customerData);
+      final response =
+          await _apiService.put('/api/credit/customers/$id/', customerData);
 
       if (response['success'] == true) {
         final index = _customers.indexWhere((c) => c.id == id);
@@ -73,7 +76,8 @@ class CreditProvider extends ChangeNotifier {
   }
 
   // Record payment for credit sale
-  Future<bool> recordPayment(int creditId, double amount, String paymentMethod, String notes) async {
+  Future<bool> recordPayment(
+      int creditId, double amount, String paymentMethod, String notes) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -109,13 +113,13 @@ class CreditProvider extends ChangeNotifier {
   Future<Map<String, dynamic>?> getCreditSummary() async {
     try {
       final response = await _apiService.get('/api/credit/summary/');
-      
+
       if (response['success'] == true) {
         return response['data'] as Map<String, dynamic>;
       }
       return null;
     } catch (e) {
-      print('Error getting credit summary: $e');
+      debugPrint('Error getting credit summary: $e');
       return null;
     }
   }
@@ -123,11 +127,12 @@ class CreditProvider extends ChangeNotifier {
   // Search customers
   List<Customer> searchCustomers(String query) {
     if (query.isEmpty) return _customers;
-    return _customers.where((customer) =>
-      customer.fullName.toLowerCase().contains(query.toLowerCase()) ||
-      customer.phone.contains(query) ||
-      customer.email.toLowerCase().contains(query.toLowerCase())
-    ).toList();
+    return _customers
+        .where((customer) =>
+            customer.fullName.toLowerCase().contains(query.toLowerCase()) ||
+            customer.phone.contains(query) ||
+            customer.email.toLowerCase().contains(query.toLowerCase()))
+        .toList();
   }
 
   // Search credit sales
@@ -136,12 +141,11 @@ class CreditProvider extends ChangeNotifier {
     return _creditSales.where((sale) {
       // Check if any medicine name matches
       bool medicineMatches = sale.items.any((item) =>
-        item.medicineName.toLowerCase().contains(query.toLowerCase())
-      );
-      
+          item.medicineName.toLowerCase().contains(query.toLowerCase()));
+
       return sale.customerName.toLowerCase().contains(query.toLowerCase()) ||
-             sale.creditId.toLowerCase().contains(query.toLowerCase()) ||
-             medicineMatches;
+          sale.creditId.toLowerCase().contains(query.toLowerCase()) ||
+          medicineMatches;
     }).toList();
   }
 
@@ -152,7 +156,9 @@ class CreditProvider extends ChangeNotifier {
 
   // Get overdue credit sales
   List<CreditSale> getOverdueCreditSales() {
-    return _creditSales.where((sale) => sale.isOverdue && sale.balance > 0).toList();
+    return _creditSales
+        .where((sale) => sale.isOverdue && sale.balance > 0)
+        .toList();
   }
 
   Future<void> loadCreditSales() async {
@@ -162,33 +168,36 @@ class CreditProvider extends ChangeNotifier {
 
       final response = await _apiService.getCreditSales();
 
-      print('📦 CREDIT SALES API RESPONSE SUCCESS: ${response['success']}');
-      print('📦 CREDIT SALES RAW RESPONSE: ${response['data']}');
-      
+      debugPrint(
+          '📦 CREDIT SALES API RESPONSE SUCCESS: ${response['success']}');
+      debugPrint('📦 CREDIT SALES RAW RESPONSE: ${response['data']}');
+
       if (response['success'] == true) {
-        final List<dynamic> data = response['data'] is List ? response['data'] : [];
-        print('📦 CREDIT SALES COUNT FROM API: ${data.length}');
-        
+        final List<dynamic> data =
+            response['data'] is List ? response['data'] : [];
+        debugPrint('📦 CREDIT SALES COUNT FROM API: ${data.length}');
+
         _creditSales = data.map((e) => CreditSale.fromJson(e)).toList();
-        
+
         for (var credit in _creditSales) {
-          print('📦 CREDIT SALE: ${credit.creditId} - Items: ${credit.items.length} - UGX ${credit.totalAmount}');
+          debugPrint(
+              '📦 CREDIT SALE: ${credit.creditId} - Items: ${credit.items.length} - UGX ${credit.totalAmount}');
         }
-        
+
         _error = null;
       } else {
         _error = response['error'];
-        print('❌ CREDIT SALES API ERROR: $_error');
+        debugPrint('❌ CREDIT SALES API ERROR: $_error');
       }
     } catch (e) {
       _error = 'Failed to load credit sales: $e';
-      print('❌ CREDIT SALES EXCEPTION: $e');
+      debugPrint('❌ CREDIT SALES EXCEPTION: $e');
     }
 
     _isLoading = false;
     notifyListeners();
   }
-  
+
   Future<bool> createCustomer(Map<String, dynamic> customerData) async {
     try {
       _isLoading = true;
@@ -219,11 +228,11 @@ class CreditProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      print('📤 CREATING CREDIT SALE WITH DATA:');
-      print(creditData);
+      debugPrint('📤 CREATING CREDIT SALE WITH DATA:');
+      debugPrint(creditData.toString());
 
       final response = await _apiService.createCreditSale(creditData);
-      print('📥 RESPONSE: ${response}');
+      debugPrint('📥 RESPONSE: $response');
 
       if (response['success'] == true) {
         _creditSales.add(CreditSale.fromJson(response['data']));
@@ -236,7 +245,7 @@ class CreditProvider extends ChangeNotifier {
       _error = response['error'];
     } catch (e) {
       _error = 'Error: $e';
-      print('❌ ERROR IN createCreditSale: $e');
+      debugPrint('❌ ERROR IN createCreditSale: $e');
     }
 
     _isLoading = false;
@@ -249,7 +258,8 @@ class CreditProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final response = await _apiService.delete('/api/credit/sales/$creditId/delete/');
+      final response =
+          await _apiService.delete('/api/credit/sales/$creditId/delete/');
 
       if (response['success'] == true) {
         _creditSales.removeWhere((sale) => sale.id == creditId);
@@ -262,7 +272,7 @@ class CreditProvider extends ChangeNotifier {
       _error = response['error'];
     } catch (e) {
       _error = 'Error deleting credit sale: $e';
-      print('❌ Error in deleteCreditSale: $e');
+      debugPrint('❌ Error in deleteCreditSale: $e');
     }
 
     _isLoading = false;

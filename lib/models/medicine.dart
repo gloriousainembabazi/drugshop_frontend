@@ -8,20 +8,20 @@ class Medicine {
   final String categoryName;
   final int supplierId;
   final String supplierName;
-  
+
   // New pricing fields
   final double unitCost;
   final double wholesalePrice;
   final double retailPrice;
   final double discountPercentage;
-  
+
   // Stock fields
   final int quantity;
   final int minStockLevel;
   final String unitType;
   final int unitsPerPack;
   final String barcode;
-  
+
   // Expiry fields
   final DateTime expiryDate;
   final String batchNumber;
@@ -95,19 +95,19 @@ class Medicine {
       unitType: json['unit_type'] ?? 'tablet',
       unitsPerPack: parseInt(json['units_per_pack']),
       barcode: json['barcode'] ?? '',
-      expiryDate: json['expiry_date'] != null 
-          ? DateTime.parse(json['expiry_date']) 
+      expiryDate: json['expiry_date'] != null
+          ? DateTime.parse(json['expiry_date'])
           : DateTime.now(),
       batchNumber: json['batch_number'] ?? '',
       description: json['description'] ?? '',
       isLowStock: json['is_low_stock'] ?? false,
       isExpired: json['is_expired'] ?? false,
       isNearingExpiry: json['is_nearing_expiry'] ?? false,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : DateTime.now(),
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : DateTime.now(),
     );
   }
@@ -135,7 +135,7 @@ class Medicine {
 
   // Computed properties for backward compatibility
   double get price => retailPrice; // Use retail price as default price
-  
+
   String get stockStatus {
     if (quantity <= 0) return 'Out of Stock';
     if (isLowStock) return 'Low Stock';
@@ -169,6 +169,7 @@ class Medicine {
   double get totalCost => quantity * unitCost;
   double get totalRetailValue => quantity * retailPrice;
   double get totalWholesaleValue => quantity * wholesalePrice;
-  double get profitMargin => unitCost > 0 ? ((retailPrice - unitCost) / unitCost) * 100 : 0;
+  double get profitMargin =>
+      unitCost > 0 ? ((retailPrice - unitCost) / unitCost) * 100 : 0;
   double get profitPerUnit => retailPrice - unitCost;
 }

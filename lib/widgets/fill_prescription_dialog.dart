@@ -23,7 +23,8 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
     super.initState();
     for (var item in widget.prescription.items) {
       if (item.remainingQuantity > 0) {
-        _quantityControllers[item.id] = TextEditingController(text: item.remainingQuantity.toString());
+        _quantityControllers[item.id] =
+            TextEditingController(text: item.remainingQuantity.toString());
       }
     }
   }
@@ -38,12 +39,12 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
 
   Future<void> _submitFill() async {
     final itemsToFill = <Map<String, dynamic>>[];
-    
+
     for (var item in widget.prescription.items) {
       if (item.remainingQuantity > 0) {
         final controller = _quantityControllers[item.id];
         final quantity = int.tryParse(controller?.text ?? '0') ?? 0;
-        
+
         if (quantity > 0) {
           itemsToFill.add({
             'item_id': item.id,
@@ -63,9 +64,9 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
     setState(() => _isLoading = true);
 
     final result = await context.read<PrescriptionProvider>().fillPrescription(
-      widget.prescription.id,
-      itemsToFill,
-    );
+          widget.prescription.id,
+          itemsToFill,
+        );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -73,12 +74,15 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
     if (result != null) {
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Prescription filled successfully! Status: ${result['status']}')),
+        SnackBar(
+            content: Text(
+                'Prescription filled successfully! Status: ${result['status']}')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.read<PrescriptionProvider>().error ?? 'Failed to fill prescription'),
+          content: Text(context.read<PrescriptionProvider>().error ??
+              'Failed to fill prescription'),
           backgroundColor: Colors.red,
         ),
       );
@@ -109,7 +113,6 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
               style: const TextStyle(color: Colors.grey),
             ),
             const Divider(height: 24),
-            
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
@@ -117,20 +120,22 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
                 itemBuilder: (context, index) {
                   final item = widget.prescription.items[index];
                   final remaining = item.remainingQuantity;
-                  
+
                   if (remaining <= 0) {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       color: Colors.green.shade50,
                       child: ListTile(
-                        leading: const Icon(Icons.check_circle, color: Colors.green),
+                        leading:
+                            const Icon(Icons.check_circle, color: Colors.green),
                         title: Text(item.medicineName),
                         subtitle: const Text('Fully filled'),
-                        trailing: Text('${item.filledQuantity}/${item.prescribedQuantity}'),
+                        trailing: Text(
+                            '${item.filledQuantity}/${item.prescribedQuantity}'),
                       ),
                     );
                   }
-                  
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: Padding(
@@ -144,7 +149,8 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
                           ),
                           Text(
                             'Prescribed: ${item.prescribedQuantity} | Already filled: ${item.filledQuantity}',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -165,7 +171,8 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
                               const SizedBox(width: 8),
                               TextButton(
                                 onPressed: () {
-                                  _quantityControllers[item.id]?.text = remaining.toString();
+                                  _quantityControllers[item.id]?.text =
+                                      remaining.toString();
                                   setState(() {});
                                 },
                                 child: const Text('MAX'),
@@ -179,7 +186,6 @@ class _FillPrescriptionDialogState extends State<FillPrescriptionDialog> {
                 },
               ),
             ),
-            
             const SizedBox(height: 20),
             Row(
               children: [

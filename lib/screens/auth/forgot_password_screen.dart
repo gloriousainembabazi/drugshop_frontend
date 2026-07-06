@@ -31,20 +31,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _handleForgotPassword() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       bool success;
       String destination;
-      
+
       if (_useEmail) {
-        success = await authProvider.forgotPassword(_emailController.text.trim());
+        success =
+            await authProvider.forgotPassword(_emailController.text.trim());
         destination = _emailController.text.trim();
       } else {
         // For phone, we need to implement a similar method
         // For now, we'll use email as fallback
-        success = await authProvider.forgotPassword(_emailController.text.trim());
+        success =
+            await authProvider.forgotPassword(_emailController.text.trim());
         destination = _phoneController.text.trim();
       }
-      
+
       if (success && mounted) {
         Navigator.pushNamed(
           context,
@@ -82,7 +84,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       height: 120,
                       width: 120,
                       decoration: BoxDecoration(
-                        color: AppConstants.primaryColor.withOpacity(0.1),
+                        color: AppConstants.primaryColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -92,7 +94,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Text(
                       'Forgot Password?',
                       textAlign: TextAlign.center,
@@ -103,7 +105,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     Text(
                       'Enter your ${_useEmail ? "email address" : "phone number"} and we\'ll send you instructions to reset your password.',
                       textAlign: TextAlign.center,
@@ -129,12 +131,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildToggleButton('Phone', false, !_useEmail),
+                            child:
+                                _buildToggleButton('Phone', false, !_useEmail),
                           ),
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
 
                     // Error message
@@ -172,7 +175,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         keyboardType: TextInputType.phone,
                         validator: Validators.phone,
                       ),
-                    
+
                     const SizedBox(height: 32),
 
                     // Send button

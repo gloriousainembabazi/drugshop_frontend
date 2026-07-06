@@ -14,9 +14,9 @@ class MedicineSearchDialogPrescription extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<MedicineProvider>(
       builder: (context, provider, child) {
-        final medicines = provider.medicines.where((m) => 
-          !m.isExpired && m.quantity > 0
-        ).toList();
+        final medicines = provider.medicines
+            .where((m) => !m.isExpired && m.quantity > 0)
+            .toList();
 
         if (medicines.isEmpty && provider.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -29,7 +29,8 @@ class MedicineSearchDialogPrescription extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Search medicine by name...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onChanged: (value) {
                 // Filtering handled by consumer rebuild
@@ -41,17 +42,20 @@ class MedicineSearchDialogPrescription extends StatelessWidget {
                 itemCount: medicines.length,
                 itemBuilder: (context, index) {
                   final medicine = medicines[index];
-                  final isLowStock = medicine.quantity <= medicine.minStockLevel;
-                  
+                  final isLowStock =
+                      medicine.quantity <= medicine.minStockLevel;
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     color: isLowStock ? Colors.orange.shade50 : Colors.white,
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: isLowStock ? Colors.orange : Colors.green,
+                        backgroundColor:
+                            isLowStock ? Colors.orange : Colors.green,
                         child: Text(
                           medicine.quantity.toString(),
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 12),
                         ),
                       ),
                       title: Text(
@@ -62,7 +66,9 @@ class MedicineSearchDialogPrescription extends StatelessWidget {
                         'Stock: ${medicine.quantity} | Price: UGX ${medicine.retailPrice.toStringAsFixed(0)}',
                         style: const TextStyle(fontSize: 12),
                       ),
-                      trailing: isLowStock ? const Icon(Icons.warning, color: Colors.orange) : null,
+                      trailing: isLowStock
+                          ? const Icon(Icons.warning, color: Colors.orange)
+                          : null,
                       onTap: () {
                         onSelect(medicine);
                       },

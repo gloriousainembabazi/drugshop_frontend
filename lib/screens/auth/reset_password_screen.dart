@@ -30,7 +30,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _showPasswordStrength = false;
@@ -45,8 +45,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   String _getPasswordStrength(String password) {
     if (password.isEmpty) return '';
     if (password.length < 6) return 'Weak';
-    if (password.length >= 8 && 
-        RegExp(r'[A-Z]').hasMatch(password) && 
+    if (password.length >= 8 &&
+        RegExp(r'[A-Z]').hasMatch(password) &&
         RegExp(r'[0-9]').hasMatch(password)) {
       return 'Strong';
     }
@@ -70,9 +70,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Future<void> _handleResetPassword() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       bool success = false;
-      
+
       if (widget.otp != null) {
         success = await authProvider.resetPasswordWithOtp(
           widget.email,
@@ -80,7 +80,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           _passwordController.text,
         );
       }
-      
+
       if (success && mounted) {
         _showSuccessDialog();
       }
@@ -158,7 +158,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       height: 120,
                       width: 120,
                       decoration: BoxDecoration(
-                        color: AppConstants.primaryColor.withOpacity(0.1),
+                        color: AppConstants.primaryColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -168,7 +168,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Text(
                       'Create New Password',
                       textAlign: TextAlign.center,
@@ -179,7 +179,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     Text(
                       'Your new password must be different from your current password',
                       textAlign: TextAlign.center,
@@ -221,7 +221,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       },
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                         ),
                         onPressed: () {
                           setState(() {
@@ -231,7 +233,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                       validator: Validators.password,
                     ),
-                    
+
                     // Password strength indicator
                     if (_showPasswordStrength) ...[
                       const SizedBox(height: 8),
@@ -239,10 +241,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         children: [
                           Expanded(
                             child: LinearProgressIndicator(
-                              value: _getPasswordStrength(_passwordController.text) == 'Weak' ? 0.33 :
-                                     _getPasswordStrength(_passwordController.text) == 'Medium' ? 0.66 : 1,
+                              value: _getPasswordStrength(
+                                          _passwordController.text) ==
+                                      'Weak'
+                                  ? 0.33
+                                  : _getPasswordStrength(
+                                              _passwordController.text) ==
+                                          'Medium'
+                                      ? 0.66
+                                      : 1,
                               backgroundColor: Colors.grey[200],
-                              color: _getStrengthColor(_getPasswordStrength(_passwordController.text)),
+                              color: _getStrengthColor(_getPasswordStrength(
+                                  _passwordController.text)),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -250,16 +260,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             _getPasswordStrength(_passwordController.text),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
-                              color: _getStrengthColor(_getPasswordStrength(_passwordController.text)),
+                              color: _getStrengthColor(_getPasswordStrength(
+                                  _passwordController.text)),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ],
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Confirm Password field
                     CustomTextField(
                       controller: _confirmPasswordController,
@@ -268,7 +279,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       obscureText: _obscureConfirmPassword,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                         ),
                         onPressed: () {
                           setState(() {
@@ -286,9 +299,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         return null;
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Password requirements
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -323,7 +336,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
 
                     // Reset button

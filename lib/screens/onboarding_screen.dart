@@ -24,7 +24,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingItem(
       title: 'Record Sales',
-      description: 'Quick and easy sales recording with automatic stock updates',
+      description:
+          'Quick and easy sales recording with automatic stock updates',
       image: Icons.shopping_cart,
       color: const Color(0xFFFF8F00),
     ),
@@ -88,7 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             height: 200,
             width: 200,
             decoration: BoxDecoration(
-              color: item.color.withOpacity(0.1),
+              color: item.color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -144,17 +145,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildButtons() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
       child: Column(
         children: [
           CustomButton(
-            text: _currentPage == _onboardingData.length - 1 ? 'Get Started' : 'Next',
+            text: _currentPage == _onboardingData.length - 1
+                ? 'Get Started'
+                : 'Next',
             onPressed: () async {
               if (_currentPage == _onboardingData.length - 1) {
                 // Mark onboarding as completed
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool('onboarding_completed', true);
-                
+
                 // Navigate to login
                 Navigator.pushReplacementNamed(context, '/login');
               } else {

@@ -6,8 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/medicine_provider.dart';
 import '../../models/medicine.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/custom_textfield.dart';
 import '../../widgets/delete_confirmation_dialog.dart';
 
 class MedicineDetailScreen extends StatefulWidget {
@@ -26,7 +24,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   late Future<Medicine?> _medicineFuture;
   bool _isEditing = false;
   bool _isLoading = false;
-  
+
   // Controllers for editing
   late TextEditingController _nameController;
   late TextEditingController _genericNameController;
@@ -51,7 +49,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   }
 
   Future<Medicine?> _loadMedicine() async {
-    final medicineProvider = Provider.of<MedicineProvider>(context, listen: false);
+    final medicineProvider =
+        Provider.of<MedicineProvider>(context, listen: false);
     await medicineProvider.loadMedicines();
     return medicineProvider.getMedicineById(widget.medicineId);
   }
@@ -83,7 +82,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     _quantityController.text = medicine.quantity.toString();
     _minStockController.text = medicine.minStockLevel.toString();
     _batchNumberController.text = medicine.batchNumber;
-    _expiryDateController.text = DateFormat('yyyy-MM-dd').format(medicine.expiryDate);
+    _expiryDateController.text =
+        DateFormat('yyyy-MM-dd').format(medicine.expiryDate);
     _barcodeController.text = medicine.barcode;
     _unitTypeController.text = medicine.unitType;
     _unitsPerPackController.text = medicine.unitsPerPack.toString();
@@ -116,17 +116,21 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       expiryDate: DateFormat('yyyy-MM-dd').parse(_expiryDateController.text),
       batchNumber: _batchNumberController.text,
       description: _descriptionController.text,
-      isLowStock: int.parse(_quantityController.text) <= int.parse(_minStockController.text),
-      isExpired: DateFormat('yyyy-MM-dd').parse(_expiryDateController.text).isBefore(DateTime.now()),
-      isNearingExpiry: _isNearingExpiry(DateFormat('yyyy-MM-dd').parse(_expiryDateController.text)),
+      isLowStock: int.parse(_quantityController.text) <=
+          int.parse(_minStockController.text),
+      isExpired: DateFormat('yyyy-MM-dd')
+          .parse(_expiryDateController.text)
+          .isBefore(DateTime.now()),
+      isNearingExpiry: _isNearingExpiry(
+          DateFormat('yyyy-MM-dd').parse(_expiryDateController.text)),
       createdAt: originalMedicine.createdAt,
       updatedAt: DateTime.now(),
     );
 
     final success = await context.read<MedicineProvider>().updateMedicine(
-      originalMedicine.id,
-      updatedMedicine.toJson(),
-    );
+          originalMedicine.id,
+          updatedMedicine.toJson(),
+        );
 
     setState(() => _isLoading = false);
 
@@ -141,7 +145,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.read<MedicineProvider>().error ?? 'Failed to update medicine'),
+          content: Text(context.read<MedicineProvider>().error ??
+              'Failed to update medicine'),
           backgroundColor: Colors.red,
         ),
       );
@@ -178,7 +183,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       _showError('Please enter expiry date');
       return false;
     }
-    
+
     return true;
   }
 
@@ -193,15 +198,16 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       context,
       'Delete Medicine',
       'Are you sure you want to delete "${medicine.name}"?\n\n'
-      '⚠️ WARNING: This action cannot be undone!\n'
-      'The medicine will be permanently removed from the database.',
+          '⚠️ WARNING: This action cannot be undone!\n'
+          'The medicine will be permanently removed from the database.',
     );
 
     if (!confirmed) return;
 
     setState(() => _isLoading = true);
 
-    final success = await context.read<MedicineProvider>().deleteMedicine(medicine.id);
+    final success =
+        await context.read<MedicineProvider>().deleteMedicine(medicine.id);
 
     setState(() => _isLoading = false);
 
@@ -213,7 +219,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.read<MedicineProvider>().error ?? 'Failed to delete medicine'),
+          content: Text(context.read<MedicineProvider>().error ??
+              'Failed to delete medicine'),
           backgroundColor: Colors.red,
         ),
       );
@@ -257,18 +264,21 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
             ),
           if (_isEditing)
             TextButton(
-              onPressed: _isLoading ? null : () => setState(() => _isEditing = false),
+              onPressed:
+                  _isLoading ? null : () => setState(() => _isEditing = false),
               child: const Text('Cancel'),
             ),
           if (_isEditing)
             ElevatedButton(
-              onPressed: _isLoading ? null : () async {
-                final medicine = await _medicineFuture;
-                if (medicine != null) {
-                  _saveMedicine(medicine);
-                }
-              },
-              child: _isLoading 
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      final medicine = await _medicineFuture;
+                      if (medicine != null) {
+                        _saveMedicine(medicine);
+                      }
+                    },
+              child: _isLoading
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -284,7 +294,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (snapshot.hasError) {
             return Center(
               child: Column(
@@ -306,18 +316,18 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               ),
             );
           }
-          
+
           final medicine = snapshot.data;
           if (medicine == null) {
             return const Center(
               child: Text('Medicine not found'),
             );
           }
-          
+
           if (!_isEditing) {
             _populateControllers(medicine);
           }
-          
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -326,7 +336,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                 // Status Card
                 _buildStatusCard(medicine),
                 const SizedBox(height: 16),
-                
+
                 // Basic Information
                 Card(
                   child: Padding(
@@ -374,7 +384,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Pricing Information
                 Card(
                   child: Padding(
@@ -422,7 +432,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Stock Information
                 Card(
                   child: Padding(
@@ -482,7 +492,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Description
                 if (_descriptionController.text.isNotEmpty || _isEditing)
                   Card(
@@ -518,82 +528,84 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   }
 
   Widget _buildStatusCard(Medicine medicine) {
-  // Determine status and colors
-  Color statusColor;
-  IconData statusIcon;
-  String statusText;
-  String statusDetails;
-  
-  if (medicine.isExpired) {
-    statusColor = Colors.red;
-    statusIcon = Icons.dangerous;
-    statusText = 'EXPIRED';
-    statusDetails = 'This medicine expired on ${DateFormat('yyyy-MM-dd').format(medicine.expiryDate)}';
-  } else if (medicine.isLowStock) {
-    statusColor = Colors.orange;
-    statusIcon = Icons.warning;
-    statusText = 'LOW STOCK';
-    statusDetails = 'Current stock: ${medicine.quantity} (Min: ${medicine.minStockLevel})';
-  } else if (medicine.isNearingExpiry) {
-    statusColor = Colors.blue;
-    statusIcon = Icons.event;
-    statusText = 'EXPIRING SOON';
-    statusDetails = 'Expires in ${medicine.daysUntilExpiry} days';
-  } else {
-    statusColor = Colors.green;
-    statusIcon = Icons.check_circle;
-    statusText = 'GOOD';
-    statusDetails = 'Stock: ${medicine.quantity} units';
-  }
-  
-  return Card(
-    color: statusColor.withOpacity(0.1),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: statusColor,
-              borderRadius: BorderRadius.circular(12),
+    // Determine status and colors
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+    String statusDetails;
+
+    if (medicine.isExpired) {
+      statusColor = Colors.red;
+      statusIcon = Icons.dangerous;
+      statusText = 'EXPIRED';
+      statusDetails =
+          'This medicine expired on ${DateFormat('yyyy-MM-dd').format(medicine.expiryDate)}';
+    } else if (medicine.isLowStock) {
+      statusColor = Colors.orange;
+      statusIcon = Icons.warning;
+      statusText = 'LOW STOCK';
+      statusDetails =
+          'Current stock: ${medicine.quantity} (Min: ${medicine.minStockLevel})';
+    } else if (medicine.isNearingExpiry) {
+      statusColor = Colors.blue;
+      statusIcon = Icons.event;
+      statusText = 'EXPIRING SOON';
+      statusDetails = 'Expires in ${medicine.daysUntilExpiry} days';
+    } else {
+      statusColor = Colors.green;
+      statusIcon = Icons.check_circle;
+      statusText = 'GOOD';
+      statusDetails = 'Stock: ${medicine.quantity} units';
+    }
+
+    return Card(
+      color: statusColor.withValues(alpha: 0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: statusColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(statusIcon, color: Colors.white, size: 28),
             ),
-            child: Icon(statusIcon, color: Colors.white, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  statusText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
-                  ),
-                ),
-                Text(
-                  statusDetails,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                if (medicine.isExpired)
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '⚠️ This medicine should be removed from active inventory',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.red.shade700,
-                      fontWeight: FontWeight.w500,
+                    statusText,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
                     ),
                   ),
-              ],
+                  Text(
+                    statusDetails,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  if (medicine.isExpired)
+                    Text(
+                      '⚠️ This medicine should be removed from active inventory',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildEditableField(
     String label,
@@ -622,7 +634,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           style: GoogleFonts.poppins(fontSize: 14),
           decoration: InputDecoration(
             prefixIcon: Icon(icon, size: 20, color: Colors.grey.shade500),
-            suffixIcon: suffixIcon != null 
+            suffixIcon: suffixIcon != null
                 ? Icon(suffixIcon, size: 20, color: Colors.grey.shade500)
                 : null,
             border: OutlineInputBorder(

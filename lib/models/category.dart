@@ -16,8 +16,8 @@ class Category {
       id: json['id'] is String ? int.parse(json['id']) : json['id'] ?? 0,
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : DateTime.now(),
     );
   }

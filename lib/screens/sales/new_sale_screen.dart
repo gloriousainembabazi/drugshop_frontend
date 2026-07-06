@@ -20,19 +20,23 @@ class NewSaleScreen extends StatefulWidget {
 }
 
 class _NewSaleScreenState extends State<NewSaleScreen> {
-  List<CartItem> _cartItems = [];
+  final List<CartItem> _cartItems = [];
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   String _selectedPaymentMethod = 'Cash';
   bool _isLoading = false;
-  
-  final List<String> _paymentMethods = ['Cash', 'Mobile Money', 'Bank Transfer'];
+
+  final List<String> _paymentMethods = [
+    'Cash',
+    'Mobile Money',
+    'Bank Transfer'
+  ];
 
   double get _subtotal {
     if (_cartItems.isEmpty) return 0.0;
     return _cartItems.fold(0, (sum, item) => sum + item.subtotal);
   }
-  
+
   double get _total => _subtotal;
 
   @override
@@ -55,10 +59,9 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   void _addToCart(Medicine medicine, int quantity) {
     setState(() {
-      final existingIndex = _cartItems.indexWhere(
-        (item) => item.medicine.id == medicine.id
-      );
-      
+      final existingIndex =
+          _cartItems.indexWhere((item) => item.medicine.id == medicine.id);
+
       if (existingIndex != -1) {
         _cartItems[existingIndex].quantity += quantity;
       } else {
@@ -68,7 +71,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         ));
       }
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Added ${medicine.name} x$quantity to cart'),
@@ -79,7 +82,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   void _updateQuantity(int index, int newQuantity) {
     if (index >= _cartItems.length) return;
-    
+
     setState(() {
       if (newQuantity <= 0) {
         _cartItems.removeAt(index);
@@ -101,11 +104,11 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   void _removeFromCart(int index) {
     if (index >= _cartItems.length) return;
-    
+
     setState(() {
       _cartItems.removeAt(index);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Removed from cart'),
@@ -120,14 +123,14 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       barrierDismissible: true,
       builder: (BuildContext dialogContext) {
         String searchQuery = '';
-        
+
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Container(
+              child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.7,
                 width: double.maxFinite,
                 child: Column(
@@ -143,7 +146,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.medical_services, color: Colors.white),
+                          const Icon(Icons.medical_services,
+                              color: Colors.white),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -162,7 +166,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                         ],
                       ),
                     ),
-                    
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: TextField(
@@ -191,26 +194,35 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                         },
                       ),
                     ),
-                    
                     Expanded(
                       child: Consumer<MedicineProvider>(
                         builder: (context, provider, child) {
-                          if (provider.isLoading && provider.medicines.isEmpty) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (provider.isLoading &&
+                              provider.medicines.isEmpty) {
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
-                          
+
                           final today = DateTime.now();
-                          final todayMidnight = DateTime(today.year, today.month, today.day);
-                          
+                          final todayMidnight =
+                              DateTime(today.year, today.month, today.day);
+
                           var availableMedicines = provider.medicines
-                              .where((m) => m.expiryDate.isAfter(todayMidnight) && m.quantity > 0)
+                              .where((m) =>
+                                  m.expiryDate.isAfter(todayMidnight) &&
+                                  m.quantity > 0)
                               .toList();
-                          
+
                           if (searchQuery.isNotEmpty) {
-                            availableMedicines = availableMedicines.where((m) =>
-                              m.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                              m.genericName.toLowerCase().contains(searchQuery.toLowerCase())
-                            ).toList();
+                            availableMedicines = availableMedicines
+                                .where((m) =>
+                                    m.name
+                                        .toLowerCase()
+                                        .contains(searchQuery.toLowerCase()) ||
+                                    m.genericName
+                                        .toLowerCase()
+                                        .contains(searchQuery.toLowerCase()))
+                                .toList();
                           }
 
                           if (availableMedicines.isEmpty) {
@@ -218,11 +230,16 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.medical_services_outlined, size: 64, color: Colors.grey.shade400),
+                                  Icon(Icons.medical_services_outlined,
+                                      size: 64, color: Colors.grey.shade400),
                                   const SizedBox(height: 16),
                                   Text(
-                                    searchQuery.isEmpty ? 'No available medicines' : 'No matching medicines',
-                                    style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey.shade600),
+                                    searchQuery.isEmpty
+                                        ? 'No available medicines'
+                                        : 'No matching medicines',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: Colors.grey.shade600),
                                   ),
                                 ],
                               ),
@@ -234,29 +251,36 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                             itemCount: availableMedicines.length,
                             itemBuilder: (context, index) {
                               final medicine = availableMedicines[index];
-                              final isLowStock = medicine.quantity <= medicine.minStockLevel;
-                              final alreadyInCart = _cartItems.any((item) => item.medicine.id == medicine.id);
-                              
+                              final isLowStock =
+                                  medicine.quantity <= medicine.minStockLevel;
+                              final alreadyInCart = _cartItems.any(
+                                  (item) => item.medicine.id == medicine.id);
+
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 child: ListTile(
                                   leading: CircleAvatar(
-                                    backgroundColor: isLowStock ? Colors.orange : Colors.green,
+                                    backgroundColor: isLowStock
+                                        ? Colors.orange
+                                        : Colors.green,
                                     child: Text(
                                       medicine.quantity.toString(),
-                                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 12),
                                     ),
                                   ),
                                   title: Text(
                                     medicine.name,
-                                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600),
                                   ),
                                   subtitle: Text(
                                     'Stock: ${medicine.quantity} | UGX ${medicine.retailPrice.toStringAsFixed(0)}',
                                     style: GoogleFonts.poppins(fontSize: 12),
                                   ),
                                   trailing: alreadyInCart
-                                      ? const Icon(Icons.check_circle, color: Colors.green)
+                                      ? const Icon(Icons.check_circle,
+                                          color: Colors.green)
                                       : null,
                                   onTap: () {
                                     Navigator.pop(dialogContext);
@@ -281,7 +305,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   void _showQuantityDialog(Medicine medicine) {
     int quantity = 1;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -313,7 +337,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                         child: Text(
                           quantity.toString(),
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.poppins(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ),
                       IconButton(
@@ -326,7 +351,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Only ${medicine.quantity} units available'),
+                                content: Text(
+                                    'Only ${medicine.quantity} units available'),
                                 duration: const Duration(milliseconds: 800),
                               ),
                             );
@@ -337,7 +363,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                   ),
                   Text(
                     'Available: ${medicine.quantity} units',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+                    style:
+                        GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
@@ -351,7 +378,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                     Navigator.pop(context);
                     _addToCart(medicine, quantity);
                   },
-                  child: Text('Add (UGX ${(medicine.retailPrice * quantity).toStringAsFixed(0)})'),
+                  child: Text(
+                      'Add (UGX ${(medicine.retailPrice * quantity).toStringAsFixed(0)})'),
                 ),
               ],
             );
@@ -377,12 +405,14 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
     });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     final saleData = {
-      'items': _cartItems.map((item) => {
-        'medicine_id': item.medicine.id,
-        'quantity': item.quantity,
-      }).toList(),
+      'items': _cartItems
+          .map((item) => {
+                'medicine_id': item.medicine.id,
+                'quantity': item.quantity,
+              })
+          .toList(),
       'user': authProvider.currentUser!.id,
       'customer_name': _customerNameController.text.trim(),
       'notes': _notesController.text.trim(),
@@ -398,19 +428,20 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
     if (success && mounted) {
       await provider.loadSales(refresh: true);
-      
+
       // Fixed: Handle nullable SaleGroup properly
       SaleGroup? saleGroup;
       try {
         saleGroup = provider.saleGroups.firstWhere(
-          (group) => group.saleDate.isAfter(DateTime.now().subtract(const Duration(minutes: 1))),
+          (group) => group.saleDate
+              .isAfter(DateTime.now().subtract(const Duration(minutes: 1))),
         );
       } catch (e) {
         if (provider.saleGroups.isNotEmpty) {
           saleGroup = provider.saleGroups.first;
         }
       }
-      
+
       if (saleGroup != null && saleGroup.saleId.isNotEmpty) {
         try {
           await PdfService.generateSaleReceipt(saleGroup);
@@ -425,7 +456,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
             Navigator.pop(context, true);
           }
         } catch (e) {
-          print('PDF Generation Error: $e');
+          debugPrint('PDF Generation Error: $e');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -485,9 +516,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
                   if (_cartItems.isNotEmpty) ...[
                     Text(
                       'Cart Items (${_cartItems.length})',
@@ -513,7 +542,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             item.medicine.name,
@@ -532,32 +562,41 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                      icon: const Icon(Icons.delete_outline,
+                                          color: Colors.red),
                                       onPressed: () => _removeFromCart(index),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.remove_circle_outline, size: 20),
-                                          onPressed: () => _updateQuantity(index, item.quantity - 1),
+                                          icon: const Icon(
+                                              Icons.remove_circle_outline,
+                                              size: 20),
+                                          onPressed: () => _updateQuantity(
+                                              index, item.quantity - 1),
                                         ),
                                         SizedBox(
                                           width: 40,
                                           child: Text(
                                             item.quantity.toString(),
                                             textAlign: TextAlign.center,
-                                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                                            style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.bold),
                                           ),
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.add_circle_outline, size: 20),
-                                          onPressed: () => _updateQuantity(index, item.quantity + 1),
+                                          icon: const Icon(
+                                              Icons.add_circle_outline,
+                                              size: 20),
+                                          onPressed: () => _updateQuantity(
+                                              index, item.quantity + 1),
                                         ),
                                       ],
                                     ),
@@ -579,7 +618,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -595,7 +633,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
                           TextFormField(
                             controller: _customerNameController,
                             decoration: InputDecoration(
@@ -607,9 +644,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          
                           DropdownButtonFormField<String>(
-                            value: _selectedPaymentMethod,
+                            initialValue: _selectedPaymentMethod,
                             decoration: InputDecoration(
                               labelText: 'Payment Method',
                               prefixIcon: const Icon(Icons.payment),
@@ -630,7 +666,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                             },
                           ),
                           const SizedBox(height: 12),
-                          
                           TextFormField(
                             controller: _notesController,
                             decoration: InputDecoration(
@@ -650,7 +685,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
               ),
             ),
           ),
-          
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -687,7 +721,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                 ),
                 const SizedBox(height: 12),
                 CustomButton(
-                  text: 'COMPLETE SALE${_cartItems.isNotEmpty ? ' (${_cartItems.length} items)' : ''}',
+                  text:
+                      'COMPLETE SALE${_cartItems.isNotEmpty ? ' (${_cartItems.length} items)' : ''}',
                   onPressed: _processSale,
                   isLoading: _isLoading,
                   isFullWidth: true,

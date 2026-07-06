@@ -27,7 +27,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
 
   bool _isLoading = false;
 
-  List<Map<String, dynamic>> _staffMetrics = [];
+  final List<Map<String, dynamic>> _staffMetrics = [];
 
   final List<String> _periods = [
     'Today',
@@ -51,8 +51,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
   Future<void> _loadReport() async {
     setState(() => _isLoading = true);
 
-    final reportProvider =
-        Provider.of<ReportProvider>(
+    final reportProvider = Provider.of<ReportProvider>(
       context,
       listen: false,
     );
@@ -73,33 +72,22 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
 
     if (report == null) return;
 
-    final List<dynamic> staffList =
-        report['staff_summary'] ?? [];
+    final List<dynamic> staffList = report['staff_summary'] ?? [];
 
-    print(
+    debugPrint(
       '📊 STAFF REPORT COUNT: ${staffList.length}',
     );
 
     for (var staff in staffList) {
-      final cashSales =
-          (staff['total_cash_sales'] ?? 0)
-              .toDouble();
+      final cashSales = (staff['total_cash_sales'] ?? 0).toDouble();
 
-      final creditSales =
-          (staff['total_credit_sales'] ?? 0)
-              .toDouble();
+      final creditSales = (staff['total_credit_sales'] ?? 0).toDouble();
 
-      final totalSales =
-          (staff['total_sales'] ?? 0)
-              .toDouble();
+      final totalSales = (staff['total_sales'] ?? 0).toDouble();
 
-      final expenses =
-          (staff['total_expenses'] ?? 0)
-              .toDouble();
+      final expenses = (staff['total_expenses'] ?? 0).toDouble();
 
-      final netContribution =
-          (staff['net_contribution'] ?? 0)
-              .toDouble();
+      final netContribution = (staff['net_contribution'] ?? 0).toDouble();
 
       _staffMetrics.add({
         'staff_id': staff['staff_id'],
@@ -109,56 +97,45 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
         // SALES
         'cash_sales': cashSales,
         'credit_sales': creditSales,
-        'credit_collected':
-            (staff['total_credit_collected'] ?? 0)
-                .toDouble(),
+        'credit_collected': (staff['total_credit_collected'] ?? 0).toDouble(),
         'total_sales': totalSales,
 
         // COUNTS
-        'transactions':
-            staff['transaction_count'] ?? 0,
+        'transactions': staff['transaction_count'] ?? 0,
 
-        'credit_count':
-            staff['credit_count'] ?? 0,
+        'credit_count': staff['credit_count'] ?? 0,
 
         // PERFORMANCE
-        'avg_transaction':
-            (staff['avg_transaction'] ?? 0)
-                .toDouble(),
+        'avg_transaction': (staff['avg_transaction'] ?? 0).toDouble(),
 
-        'unique_medicines':
-            staff['unique_medicines'] ?? 0,
+        'unique_medicines': staff['unique_medicines'] ?? 0,
 
         // EXPENSES
         'expenses': expenses,
 
-        'expense_count':
-            staff['expense_count'] ?? 0,
+        'expense_count': staff['expense_count'] ?? 0,
 
         // PRESCRIPTIONS
-        'prescriptions':
-            staff['prescription_count'] ?? 0,
+        'prescriptions': staff['prescription_count'] ?? 0,
 
         // NET
         'net_profit': netContribution,
       });
 
-      print(
+      debugPrint(
         '📊 ${staff['name']} | Cash=$cashSales | Credit=$creditSales | Expenses=$expenses',
       );
     }
 
     _staffMetrics.sort(
-      (a, b) => (b['net_profit'] as double)
-          .compareTo(
+      (a, b) => (b['net_profit'] as double).compareTo(
         a['net_profit'] as double,
       ),
     );
   }
 
   Future<void> _downloadPDF() async {
-    final reportProvider =
-        Provider.of<ReportProvider>(
+    final reportProvider = Provider.of<ReportProvider>(
       context,
       listen: false,
     );
@@ -166,8 +143,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
     final report = reportProvider.staffReport;
 
     if (report != null) {
-      final content =
-          PdfService.buildStaffReportContent(
+      final content = PdfService.buildStaffReportContent(
         report,
       );
 
@@ -177,8 +153,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
               'Staff report downloaded successfully',
@@ -266,8 +241,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
   }
 
   Future<void> _selectCustomRange() async {
-    final picked =
-        await showDateRangePicker(
+    final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
@@ -311,7 +285,6 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-
       appBar: AppBar(
         title: Text(
           'Staff Performance Report',
@@ -319,15 +292,12 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios,
           ),
-          onPressed: () =>
-              Navigator.pop(context),
+          onPressed: () => Navigator.pop(context),
         ),
-
         actions: [
           IconButton(
             icon: const Icon(
@@ -335,42 +305,28 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
             ),
             onPressed: _downloadPDF,
           ),
-
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadReport,
           ),
         ],
       ),
-
       body: _isLoading
           ? const LoadingIndicator()
           : RefreshIndicator(
               onRefresh: _loadReport,
               child: SingleChildScrollView(
-                physics:
-                    const AlwaysScrollableScrollPhysics(),
-
-                padding:
-                    const EdgeInsets.all(12),
-
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(12),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildPeriodSelector(),
-
                     const SizedBox(
                       height: 16,
                     ),
-
-                    if (_staffMetrics.isEmpty)
-                      _buildEmptyState(),
-
-                    if (_staffMetrics
-                        .isNotEmpty)
-                      ..._buildStaffCards(),
+                    if (_staffMetrics.isEmpty) _buildEmptyState(),
+                    if (_staffMetrics.isNotEmpty) ..._buildStaffCards(),
                   ],
                 ),
               ),
@@ -381,13 +337,9 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
   Widget _buildPeriodSelector() {
     return Container(
       padding: const EdgeInsets.all(12),
-
       decoration: BoxDecoration(
         color: Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(12),
-
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.shade200,
@@ -396,11 +348,8 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
           ),
         ],
       ),
-
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Select Period',
@@ -408,38 +357,25 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const SizedBox(height: 8),
-
           SingleChildScrollView(
-            scrollDirection:
-                Axis.horizontal,
-
+            scrollDirection: Axis.horizontal,
             child: Row(
-              children:
-                  _periods.map((period) {
+              children: _periods.map((period) {
                 return Padding(
-                  padding:
-                      const EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     right: 6,
                   ),
-
                   child: FilterChip(
                     label: Text(
                       period,
-                      style:
-                          const TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                       ),
                     ),
-
-                    selected:
-                        _selectedPeriod ==
-                            period,
-
+                    selected: _selectedPeriod == period,
                     onSelected: (value) {
-                      if (period ==
-                          'Custom Range') {
+                      if (period == 'Custom Range') {
                         _selectCustomRange();
                       } else {
                         _updateDateRange(
@@ -452,18 +388,14 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
               }).toList(),
             ),
           ),
-
           const SizedBox(height: 10),
-
           Row(
             children: [
               const Icon(
                 Icons.calendar_today,
                 size: 14,
               ),
-
               const SizedBox(width: 5),
-
               Text(
                 '${DateFormat('yyyy-MM-dd').format(_startDate)} - ${DateFormat('yyyy-MM-dd').format(_endDate)}',
                 style: const TextStyle(
@@ -481,7 +413,6 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
     return const Center(
       child: Padding(
         padding: EdgeInsets.all(32),
-
         child: Column(
           children: [
             Icon(
@@ -489,9 +420,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
               size: 64,
               color: Colors.grey,
             ),
-
             SizedBox(height: 16),
-
             Text(
               'No staff data available for this period',
             ),
@@ -504,9 +433,7 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
   List<Widget> _buildStaffCards() {
     final List<Widget> cards = [];
 
-    for (int i = 0;
-        i < _staffMetrics.length;
-        i++) {
+    for (int i = 0; i < _staffMetrics.length; i++) {
       cards.add(
         _buildStaffCard(
           _staffMetrics[i],
@@ -528,148 +455,95 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
     Map<String, dynamic> staff,
     int rank,
   ) {
-    final cashSales =
-        staff['cash_sales'] as double;
+    final cashSales = staff['cash_sales'] as double;
 
-    final creditSales =
-        staff['credit_sales'] as double;
+    final creditSales = staff['credit_sales'] as double;
 
-    final totalSales =
-        staff['total_sales'] as double;
+    final totalSales = staff['total_sales'] as double;
 
-    final expenses =
-        staff['expenses'] as double;
+    final expenses = staff['expenses'] as double;
 
-    final netProfit =
-        staff['net_profit'] as double;
+    final netProfit = staff['net_profit'] as double;
 
-    final topSales =
-        _staffMetrics.isNotEmpty
-            ? (_staffMetrics[0]
-                    ['total_sales']
-                as double)
-            : 1;
+    final topSales = _staffMetrics.isNotEmpty
+        ? (_staffMetrics[0]['total_sales'] as double)
+        : 1;
 
-    final performancePercent =
-        topSales > 0
-            ? (totalSales / topSales) *
-                100
-            : 0;
+    final performancePercent = topSales > 0 ? (totalSales / topSales) * 100 : 0;
 
     return Card(
       elevation: 2,
-
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
       ),
-
       child: Padding(
-        padding:
-            const EdgeInsets.all(12),
-
+        padding: const EdgeInsets.all(12),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 CircleAvatar(
                   radius: 22,
-
-                  backgroundColor:
-                      Colors.blue
-                          .withOpacity(0.1),
-
+                  backgroundColor: Colors.blue.withValues(alpha: 0.1),
                   child: Text(
                     _getRoleIcon(
                       staff['role'],
                     ),
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
-
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         staff['name'],
-                        style:
-                            GoogleFonts
-                                .poppins(
-                          fontWeight:
-                              FontWeight
-                                  .bold,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
-
                       Text(
-                        staff['role']
-                            .toString()
-                            .toUpperCase(),
+                        staff['role'].toString().toUpperCase(),
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors
-                              .grey[700],
+                          color: Colors.grey[700],
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
                   ),
-
-                  decoration:
-                      BoxDecoration(
-                    color: Colors.green
-                        .withOpacity(
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(
                       0.1,
                     ),
-
-                    borderRadius:
-                        BorderRadius
-                            .circular(
+                    borderRadius: BorderRadius.circular(
                       20,
                     ),
                   ),
-
                   child: Text(
                     'UGX ${netProfit.toStringAsFixed(0)}',
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.green,
-                      fontWeight:
-                          FontWeight
-                              .bold,
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 14),
-
             Wrap(
               spacing: 8,
               runSpacing: 8,
-
               children: [
                 _buildStatChip(
                   'Cash Sales',
@@ -677,49 +551,42 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
                   Icons.money,
                   Colors.green,
                 ),
-
                 _buildStatChip(
                   'Credit Sales',
                   'UGX ${creditSales.toStringAsFixed(0)}',
                   Icons.credit_card,
                   Colors.orange,
                 ),
-
                 _buildStatChip(
                   'Total Sales',
                   'UGX ${totalSales.toStringAsFixed(0)}',
                   Icons.bar_chart,
                   Colors.blue,
                 ),
-
                 _buildStatChip(
                   'Expenses',
                   'UGX ${expenses.toStringAsFixed(0)}',
                   Icons.receipt_long,
                   Colors.red,
                 ),
-
                 _buildStatChip(
                   'Transactions',
                   '${staff['transactions']}',
                   Icons.receipt,
                   Colors.purple,
                 ),
-
                 _buildStatChip(
                   'Credit Count',
                   '${staff['credit_count']}',
                   Icons.credit_card,
                   Colors.orange,
                 ),
-
                 _buildStatChip(
                   'Prescriptions',
                   '${staff['prescriptions']}',
                   Icons.description,
                   Colors.teal,
                 ),
-
                 _buildStatChip(
                   'Performance',
                   '${performancePercent.toStringAsFixed(0)}%',
@@ -741,31 +608,23 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
     Color color,
   ) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 8,
         vertical: 5,
       ),
-
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-
-        borderRadius:
-            BorderRadius.circular(20),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
       ),
-
       child: Row(
         mainAxisSize: MainAxisSize.min,
-
         children: [
           Icon(
             icon,
             size: 12,
             color: color,
           ),
-
           const SizedBox(width: 4),
-
           Text(
             '$label: ',
             style: TextStyle(
@@ -773,13 +632,11 @@ class _StaffReportScreenState extends State<StaffReportScreen> {
               color: color,
             ),
           ),
-
           Text(
             value,
             style: TextStyle(
               fontSize: 10,
-              fontWeight:
-                  FontWeight.bold,
+              fontWeight: FontWeight.bold,
               color: color,
             ),
           ),

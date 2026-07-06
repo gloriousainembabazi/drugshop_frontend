@@ -14,7 +14,6 @@ import 'providers/prescription_provider.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
-import 'services/translation_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -70,9 +69,7 @@ void main() async {
 
   // Initialize translation service with saved language
   final savedLanguage = await storageService.getLanguage();
-  if (savedLanguage != null) {
-    TranslationService().setLanguage(savedLanguage);
-  }
+  if (savedLanguage != null) {}
 
   runApp(
     MyApp(
@@ -102,11 +99,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider(authService, storageService)),
+        ChangeNotifierProvider(
+            create: (_) => AuthProvider(authService, storageService)),
         ChangeNotifierProvider(create: (_) => MedicineProvider(apiService)),
         ChangeNotifierProvider(create: (_) => SaleProvider(apiService)),
         ChangeNotifierProvider(create: (_) => ReportProvider(apiService)),
-        ChangeNotifierProvider(create: (_) => SettingsProvider(storageService, apiService)),
+        ChangeNotifierProvider(
+            create: (_) => SettingsProvider(storageService, apiService)),
         ChangeNotifierProvider(create: (_) => ExpenseProvider(apiService)),
         ChangeNotifierProvider(create: (_) => CreditProvider(apiService)),
         ChangeNotifierProvider(create: (_) => PrescriptionProvider(apiService)),
@@ -119,11 +118,11 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settingsProvider.getThemeMode(),
-            
+
             // 🌟 ADDED: This forces the entire app to rebuild when the language changes
             // Ensure your settingsProvider.language returns codes like 'en', 'fr', 'es', 'ar', 'sw'
             locale: Locale(settingsProvider.language.toLowerCase()),
-            
+
             initialRoute: _getInitialRoute(authProvider, onboardingCompleted),
             routes: {
               '/splash': (context) => const SplashScreen(),
@@ -154,27 +153,54 @@ class MyApp extends StatelessWidget {
             onGenerateRoute: (settings) {
               if (settings.name == '/medicine-detail') {
                 final args = settings.arguments as Map<String, dynamic>?;
-                return MaterialPageRoute(builder: (context) => MedicineDetailScreen(medicineId: args?['id'] ?? 0));
+                return MaterialPageRoute(
+                    builder: (context) =>
+                        MedicineDetailScreen(medicineId: args?['id'] ?? 0));
               }
               if (settings.name == '/sale-detail') {
                 final args = settings.arguments as Map<String, dynamic>?;
                 final saleId = args?['sale_id'] ?? '';
-                if (saleId.isEmpty) return MaterialPageRoute(builder: (context) => const Scaffold(body: Center(child: Text('Invalid sale ID'))));
-                return MaterialPageRoute(builder: (context) => SaleDetailScreen(saleId: saleId));
+                if (saleId.isEmpty)
+                  return MaterialPageRoute(
+                      builder: (context) => const Scaffold(
+                          body: Center(child: Text('Invalid sale ID'))));
+                return MaterialPageRoute(
+                    builder: (context) => SaleDetailScreen(saleId: saleId));
               }
               if (settings.name == '/otp-verification') {
                 final args = settings.arguments;
-                if (args is String) return MaterialPageRoute(builder: (context) => OtpVerificationScreen(destination: args, type: 'email', purpose: 'verification'));
-                if (args is Map<String, dynamic>) return MaterialPageRoute(builder: (context) => OtpVerificationScreen(destination: args['destination'] ?? '', type: args['type'] ?? 'email', purpose: args['purpose'] ?? 'verification'));
-                return MaterialPageRoute(builder: (context) => const OtpVerificationScreen(destination: '', type: 'email', purpose: 'verification'));
+                if (args is String)
+                  return MaterialPageRoute(
+                      builder: (context) => OtpVerificationScreen(
+                          destination: args,
+                          type: 'email',
+                          purpose: 'verification'));
+                if (args is Map<String, dynamic>)
+                  return MaterialPageRoute(
+                      builder: (context) => OtpVerificationScreen(
+                          destination: args['destination'] ?? '',
+                          type: args['type'] ?? 'email',
+                          purpose: args['purpose'] ?? 'verification'));
+                return MaterialPageRoute(
+                    builder: (context) => const OtpVerificationScreen(
+                        destination: '',
+                        type: 'email',
+                        purpose: 'verification'));
               }
               if (settings.name == '/otp-verification-reset') {
                 final args = settings.arguments as Map<String, dynamic>?;
-                return MaterialPageRoute(builder: (context) => OtpVerificationScreen(destination: args?['destination'] ?? '', type: args?['type'] ?? 'email', purpose: 'reset'));
+                return MaterialPageRoute(
+                    builder: (context) => OtpVerificationScreen(
+                        destination: args?['destination'] ?? '',
+                        type: args?['type'] ?? 'email',
+                        purpose: 'reset'));
               }
               if (settings.name == '/reset-password') {
                 final args = settings.arguments as Map<String, dynamic>?;
-                return MaterialPageRoute(builder: (context) => ResetPasswordScreen(email: args?['email'] ?? '', otp: args?['otp']?.toString()));
+                return MaterialPageRoute(
+                    builder: (context) => ResetPasswordScreen(
+                        email: args?['email'] ?? '',
+                        otp: args?['otp']?.toString()));
               }
               return null;
             },

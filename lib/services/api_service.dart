@@ -1,15 +1,16 @@
+import 'package:flutter/foundation.dart';
+// lib/services/api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'storage_service.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:typed_data';  
-import 'dart:io';
+import 'dart:typed_data';
 
 class ApiService {
   final StorageService _storageService;
 
-  // FOR FLUTTER WEB + DJANGO
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  // ✅ CORRECTED: Removed /auth from base URL
+  static const String baseUrl = 'https://drugshop-backend-1.onrender.com/api';
 
   ApiService(this._storageService);
 
@@ -20,6 +21,8 @@ class ApiService {
   Future<Map<String, dynamic>> get(String endpoint) async {
     try {
       final token = await _storageService.getToken();
+
+      debugPrint('🔍 GET Request: $baseUrl$endpoint');
 
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
@@ -32,6 +35,7 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
+      debugPrint('❌ GET Error: $e');
       return _networkError(e);
     }
   }
@@ -43,8 +47,12 @@ class ApiService {
     try {
       final token = await _storageService.getToken();
 
+      final fullUrl = '$baseUrl$endpoint';
+      debugPrint('📤 POST Request: $fullUrl');
+      debugPrint('📤 Data: $data');
+
       final response = await http.post(
-        Uri.parse('$baseUrl$endpoint'),
+        Uri.parse(fullUrl),
         headers: {
           'Content-Type': 'application/json',
           if (token != null && token.isNotEmpty)
@@ -53,8 +61,12 @@ class ApiService {
         body: jsonEncode(data),
       );
 
+      debugPrint('📥 Response Status: ${response.statusCode}');
+      debugPrint('📥 Response Body: ${response.body}');
+
       return _handleResponse(response);
     } catch (e) {
+      debugPrint('❌ POST Error: $e');
       return _networkError(e);
     }
   }
@@ -82,7 +94,6 @@ class ApiService {
     }
   }
 
-  // 🌟 Added PATCH support for partial updates expected by Django REST Framework
   Future<Map<String, dynamic>> patch(
     String endpoint,
     Map<String, dynamic> data,
@@ -126,12 +137,12 @@ class ApiService {
   }
 
   // =====================================================
-  // RESPONSE HANDLER - FIXES DOUBLE NESTING
+  // RESPONSE HANDLER
   // =====================================================
 
   Map<String, dynamic> _handleResponse(http.Response response) {
-    print('STATUS CODE: ${response.statusCode}');
-    print('RESPONSE BODY: ${response.body}');
+    debugPrint('🔍 STATUS CODE: ${response.statusCode}');
+    debugPrint('🔍 RESPONSE BODY: ${response.body}');
 
     if (response.body.isEmpty) {
       final isSuccess = response.statusCode >= 200 && response.statusCode < 300;
@@ -155,14 +166,10 @@ class ApiService {
       };
     }
 
-    // Handle successful response (2xx status codes)
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      // If the backend already structures structural response keys ('success' and 'data'),
-      // return it as-is to bypass unwanted local dictionary re-wrapping.
-      if (decodedJson is Map<String, dynamic> && 
-          decodedJson.containsKey('success') && 
+      if (decodedJson is Map<String, dynamic> &&
+          decodedJson.containsKey('success') &&
           decodedJson.containsKey('data')) {
-        
         if (!decodedJson.containsKey('statusCode')) {
           decodedJson['statusCode'] = response.statusCode;
         }
@@ -176,7 +183,6 @@ class ApiService {
       };
     }
 
-    // Handle normalization of errors
     String errorMessage = 'Something went wrong';
 
     if (decodedJson is Map<String, dynamic>) {
@@ -212,6 +218,7 @@ class ApiService {
   }
 
   Map<String, dynamic> _networkError(Object e) {
+    debugPrint('❌ NETWORK ERROR: $e');
     return {
       'success': false,
       'data': null,
@@ -221,7 +228,7 @@ class ApiService {
   }
 
   // =====================================================
-  // AUTH
+  // AUTH - ALL METHODS
   // =====================================================
 
   Future<Map<String, dynamic>> login({
@@ -229,10 +236,10 @@ class ApiService {
     required String password,
   }) async {
     return await post(
-      '/api/auth/login/',
+      '/auth/login/',
       {
-        'username': username,
-        'password': password,
+        'username': username.trim(),
+        'password': password.trim(),
       },
     );
   }
@@ -240,11 +247,61 @@ class ApiService {
   Future<Map<String, dynamic>> register(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/auth/register/', data);
+    return await post('/auth/register/', data);
+  }
+
+  Future<Map<String, dynamic>> sendOtp({
+    String? email,
+    String? phone,
+    required String otpType,
+  }) async {
+    final Map<String, dynamic> body = {
+      'otp_type': otpType,
+    };
+    if (email != null) body['email'] = email;
+    if (phone != null) body['phone'] = phone;
+
+    return await post('/auth/send-otp/', body);
+  }
+
+  Future<Map<String, dynamic>> verifyOtp({
+    String? email,
+    String? phone,
+    required String otp,
+    required String otpType,
+  }) async {
+    final Map<String, dynamic> body = {
+      'otp': otp,
+      'otp_type': otpType,
+    };
+    if (email != null) body['email'] = email;
+    if (phone != null) body['phone'] = phone;
+
+    return await post('/auth/verify-otp/', body);
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    return await post('/auth/forgot-password/', {
+      'email': email,
+    });
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    return await post('/auth/reset-password/', {
+      'email': email,
+      'otp': otp,
+      'new_password': newPassword,
+      'confirm_password': confirmPassword,
+    });
   }
 
   Future<Map<String, dynamic>> getCurrentUser() async {
-    return await get('/api/auth/current-user/');
+    return await get('/auth/current-user/');
   }
 
   // =====================================================
@@ -252,24 +309,15 @@ class ApiService {
   // =====================================================
 
   Future<Map<String, dynamic>> updateUsername(String username) async {
-    return await put(
-      '/api/user/update-username/',
-      {'username': username},
-    );
+    return await put('/user/update-username/', {'username': username});
   }
 
   Future<Map<String, dynamic>> updateEmail(String email) async {
-    return await put(
-      '/api/user/update-email/',
-      {'email': email},
-    );
+    return await put('/user/update-email/', {'email': email});
   }
 
   Future<Map<String, dynamic>> updatePhone(String phone) async {
-    return await put(
-      '/api/user/update-phone/',
-      {'phone': phone},
-    );
+    return await put('/user/update-phone/', {'phone': phone});
   }
 
   Future<Map<String, dynamic>> updateProfile({
@@ -281,23 +329,22 @@ class ApiService {
     if (username != null) data['username'] = username;
     if (email != null) data['email'] = email;
     if (phone != null) data['phone'] = phone;
-    return await put('/api/user/update-profile/', data);
+    return await put('/user/update-profile/', data);
   }
 
   Future<Map<String, dynamic>> updateProfilePicture(String imagePath) async {
     try {
       final token = await _storageService.getToken();
       final request = http.MultipartRequest(
-        'POST', 
-        Uri.parse('$baseUrl/api/user/update-profile-picture/')
-      );
-      
+          'POST', Uri.parse('$baseUrl/user/update-profile-picture/'));
+
       request.headers['Authorization'] = 'Token $token';
-      request.files.add(await http.MultipartFile.fromPath('profile_picture', imagePath));
-      
+      request.files
+          .add(await http.MultipartFile.fromPath('profile_picture', imagePath));
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       return _handleResponse(response);
     } catch (e) {
       return _networkError(e);
@@ -305,37 +352,36 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getProfile() async {
-    return await get('/api/user/profile/');
+    return await get('/user/profile/');
   }
 
   Future<Map<String, dynamic>> verifyEmailOTP(String email, String otp) async {
     return await post(
-      '/api/user/verify-email/',
+      '/user/verify-email/',
       {'email': email, 'otp': otp},
     );
   }
 
   Future<Map<String, dynamic>> resendVerificationCode(String email) async {
     return await post(
-      '/api/user/resend-verification/',
+      '/user/resend-verification/',
       {'email': email},
     );
   }
 
   // =====================================================
-  // LANGUAGE PREFERENCES - FIXING FOR DRF 405 ROUTING
+  // LANGUAGE PREFERENCES
   // =====================================================
 
   Future<Map<String, dynamic>> updateUserLanguage(String language) async {
-    // 🌟 ROUTING FIX: Changed to use patch() method to correctly communicate partial adjustments
     return await patch(
-      '/api/user/language/',
+      '/user/language/',
       {'language': language},
     );
   }
 
   Future<Map<String, dynamic>> getUserLanguage() async {
-    return await get('/api/user/language/');
+    return await get('/user/language/');
   }
 
   // =====================================================
@@ -345,7 +391,7 @@ class ApiService {
   Future<Map<String, dynamic>> getMedicines({
     Map<String, dynamic>? params,
   }) async {
-    String endpoint = '/api/medicines/';
+    String endpoint = '/medicines/';
 
     if (params != null && params.isNotEmpty) {
       final queryString = Uri(
@@ -361,44 +407,44 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getMedicine(int id) async {
-    return await get('/api/medicines/$id/');
+    return await get('/medicines/$id/');
   }
 
   Future<Map<String, dynamic>> createMedicine(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/medicines/', data);
+    return await post('/medicines/', data);
   }
 
   Future<Map<String, dynamic>> updateMedicine(
     int id,
     Map<String, dynamic> data,
   ) async {
-    return await put('/api/medicines/$id/', data);
+    return await put('/medicines/$id/', data);
   }
 
   Future<Map<String, dynamic>> deleteMedicine(int id) async {
-    return await delete('/api/medicines/$id/');
+    return await delete('/medicines/$id/');
   }
 
   Future<Map<String, dynamic>> getLowStockMedicines() async {
-    return await get('/api/medicines/low-stock/');
+    return await get('/medicines/low-stock/');
   }
 
   Future<Map<String, dynamic>> getExpiringMedicines() async {
-    return await get('/api/medicines/expiring/');
+    return await get('/medicines/expiring/');
   }
 
   Future<Map<String, dynamic>> getExpiredMedicines() async {
-    return await get('/api/medicines/expired/');
+    return await get('/medicines/expired/');
   }
 
   Future<Map<String, dynamic>> getCategories() async {
-    return await get('/api/medicines/categories/');
+    return await get('/medicines/categories/');
   }
 
   Future<Map<String, dynamic>> getSuppliers() async {
-    return await get('/api/medicines/suppliers/');
+    return await get('/medicines/suppliers/');
   }
 
   // =====================================================
@@ -408,7 +454,7 @@ class ApiService {
   Future<Map<String, dynamic>> getSales({
     Map<String, dynamic>? params,
   }) async {
-    String endpoint = '/api/sales/';
+    String endpoint = '/sales/';
 
     if (params != null && params.isNotEmpty) {
       final queryString = Uri(
@@ -424,17 +470,17 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getSale(int id) async {
-    return await get('/api/sales/$id/');
+    return await get('/sales/$id/');
   }
 
   Future<Map<String, dynamic>> createSale(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/sales/', data);
+    return await post('/sales/', data);
   }
 
   Future<Map<String, dynamic>> getDailySales() async {
-    return await get('/api/sales/daily/');
+    return await get('/sales/daily/');
   }
 
   Future<Map<String, dynamic>> getSalesByDateRange(
@@ -442,23 +488,23 @@ class ApiService {
     String endDate,
   ) async {
     return await get(
-      '/api/reports/sales/?start=$startDate&end=$endDate',
+      '/reports/sales/?start=$startDate&end=$endDate',
     );
   }
-  
+
   Future<Map<String, dynamic>> getSaleItems(String saleId) async {
     try {
       final token = await _storageService.getToken();
-      
+
       final response = await http.get(
-        Uri.parse('$baseUrl/api/sales/items/$saleId/'),
+        Uri.parse('$baseUrl/sales/items/$saleId/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null && token.isNotEmpty)
             'Authorization': 'Token $token',
         },
       );
-      
+
       if (response.statusCode == 200) {
         return {
           'success': true,
@@ -471,7 +517,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Get Sale Items Error: $e');
+      debugPrint('Get Sale Items Error: $e');
       return {
         'success': false,
         'error': 'Failed to get sale items: $e',
@@ -484,7 +530,7 @@ class ApiService {
   // =====================================================
 
   Future<Map<String, dynamic>> getDashboardSummary() async {
-    return await get('/api/reports/dashboard/');
+    return await get('/reports/dashboard/');
   }
 
   Future<Map<String, dynamic>> getSalesReport({
@@ -492,28 +538,28 @@ class ApiService {
     String? endDate,
   }) async {
     return await get(
-      '/api/reports/sales/?start=${startDate ?? ""}&end=${endDate ?? ""}',
+      '/reports/sales/?start=${startDate ?? ""}&end=${endDate ?? ""}',
     );
   }
 
   Future<Map<String, dynamic>> getInventoryReport() async {
-    return await get('/api/reports/inventory/');
+    return await get('/reports/inventory/');
   }
 
   Future<Map<String, dynamic>> getStaffReport() async {
-    return await get('/api/reports/staff/');
+    return await get('/reports/staff/');
   }
 
   Future<Map<String, dynamic>> getDailySalesReport() async {
-    return await get('/api/reports/daily-sales/');
+    return await get('/reports/daily-sales/');
   }
 
   Future<Map<String, dynamic>> getLowStockReport() async {
-    return await get('/api/reports/low-stock/');
+    return await get('/reports/low-stock/');
   }
 
   Future<Map<String, dynamic>> getExpiredReport() async {
-    return await get('/api/reports/expired/');
+    return await get('/reports/expired/');
   }
 
   // =====================================================
@@ -521,17 +567,17 @@ class ApiService {
   // =====================================================
 
   Future<Map<String, dynamic>> getExpenses() async {
-    return await get('/api/expenses/');
+    return await get('/expenses/');
   }
 
   Future<Map<String, dynamic>> getExpenseCategories() async {
-    return await get('/api/expenses/categories/');
+    return await get('/expenses/categories/');
   }
 
   Future<Map<String, dynamic>> createExpense(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/expenses/', data);
+    return await post('/expenses/', data);
   }
 
   // =====================================================
@@ -539,59 +585,61 @@ class ApiService {
   // =====================================================
 
   Future<Map<String, dynamic>> getCustomers() async {
-    return await get('/api/credit/customers/');
+    return await get('/credit/customers/');
   }
 
   Future<Map<String, dynamic>> createCustomer(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/credit/customers/', data);
+    return await post('/credit/customers/', data);
   }
 
   Future<Map<String, dynamic>> getCreditSales() async {
-    return await get('/api/credit/sales/');
+    return await get('/credit/sales/');
   }
 
   Future<Map<String, dynamic>> createCreditSale(
     Map<String, dynamic> data,
   ) async {
-    print('📤 API SERVICE - SENDING TO /api/credit/sales/');
-    print('📤 REQUEST BODY: $data');
-    print('📤 TOTAL_AMOUNT: ${data['total_amount']}');
-    
-    final response = await post('/api/credit/sales/', data);
-    
-    print('📥 API SERVICE - RESPONSE STATUS: ${response['statusCode']}');
-    print('📥 API SERVICE - RESPONSE BODY: ${response['data']}');
-    
+    debugPrint('📤 API SERVICE - SENDING TO /credit/sales/');
+    debugPrint('📤 REQUEST BODY: $data');
+    debugPrint('📤 TOTAL_AMOUNT: ${data['total_amount']}');
+
+    final response = await post('/credit/sales/', data);
+
+    debugPrint('📥 API SERVICE - RESPONSE STATUS: ${response['statusCode']}');
+    debugPrint('📥 API SERVICE - RESPONSE BODY: ${response['data']}');
+
     return response;
   }
-  
+
   // =====================================================
   // PRESCRIPTIONS
   // =====================================================
 
   Future<Map<String, dynamic>> getPrescriptions() async {
-    return await get('/api/prescriptions/');
+    return await get('/prescriptions/');
   }
 
   Future<Map<String, dynamic>> createPrescription(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/prescriptions/', data);
+    return await post('/prescriptions/', data);
   }
 
-  Future<Map<String, dynamic>> postFile(String endpoint, String filePath) async {
+  Future<Map<String, dynamic>> postFile(
+      String endpoint, String filePath) async {
     try {
       final token = await _storageService.getToken();
-      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
-      
+      final request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
+
       request.headers['Authorization'] = 'Token $token';
       request.files.add(await http.MultipartFile.fromPath('image', filePath));
-      
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       return _handleResponse(response);
     } catch (e) {
       return _networkError(e);
@@ -599,18 +647,18 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> postWithImage(
-    String endpoint, 
-    Map<String, dynamic> data, 
-    Uint8List imageBytes,
-    String imageFieldName
-  ) async {
+      String endpoint,
+      Map<String, dynamic> data,
+      Uint8List imageBytes,
+      String imageFieldName) async {
     try {
       final token = await _storageService.getToken();
-      
-      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
-      
+
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
+
       request.headers['Authorization'] = 'Token $token';
-      
+
       data.forEach((key, value) {
         if (value != null) {
           if (key == 'items') {
@@ -620,23 +668,23 @@ class ApiService {
           }
         }
       });
-      
+
       request.files.add(http.MultipartFile.fromBytes(
         imageFieldName,
         imageBytes,
         filename: 'prescription_${DateTime.now().millisecondsSinceEpoch}.jpg',
         contentType: MediaType('image', 'jpeg'),
       ));
-      
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
-      print('📸 IMAGE UPLOAD RESPONSE: ${response.statusCode}');
-      print('📸 IMAGE UPLOAD BODY: ${response.body}');
-      
+
+      debugPrint('📸 IMAGE UPLOAD RESPONSE: ${response.statusCode}');
+      debugPrint('📸 IMAGE UPLOAD BODY: ${response.body}');
+
       return _handleResponse(response);
     } catch (e) {
-      print('📸 IMAGE UPLOAD ERROR: $e');
+      debugPrint('📸 IMAGE UPLOAD ERROR: $e');
       return _networkError(e);
     }
   }
@@ -646,13 +694,13 @@ class ApiService {
   // =====================================================
 
   Future<Map<String, dynamic>> getStockCounts() async {
-    return await get('/api/stock/counts/');
+    return await get('/stock/counts/');
   }
 
   Future<Map<String, dynamic>> createStockCount(
     Map<String, dynamic> data,
   ) async {
-    return await post('/api/stock/counts/', data);
+    return await post('/stock/counts/', data);
   }
 
   Future<Map<String, dynamic>> submitStockCount(
@@ -660,13 +708,15 @@ class ApiService {
     Map<String, dynamic> data,
   ) async {
     return await post(
-      '/api/stock/counts/$id/submit/',
+      '/stock/counts/$id/submit/',
       data,
     );
   }
-  Future<Map<String, dynamic>> updatePassword(String oldPassword, String newPassword) async {
+
+  Future<Map<String, dynamic>> updatePassword(
+      String oldPassword, String newPassword) async {
     return await put(
-      '/api/user/update-password/',
+      '/user/update-password/',
       {
         'old_password': oldPassword,
         'new_password': newPassword,

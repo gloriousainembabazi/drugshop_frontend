@@ -46,7 +46,9 @@ class CustomTextField extends StatelessWidget {
           fontSize: 14,
           color: Colors.grey[600],
         ),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.grey[600]) : null,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, color: Colors.grey[600])
+            : null,
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -66,7 +68,8 @@ class CustomTextField extends StatelessWidget {
         ),
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
