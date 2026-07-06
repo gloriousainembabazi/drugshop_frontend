@@ -22,10 +22,15 @@ jobs:
           channel: "stable"
 
       - name: Check runner resources
-        run: free -h && nproc
+        run: |
+          free -h
+          nproc
+          swapon --show
 
       - name: Add swap space
         run: |
+          sudo swapoff -a || true
+          sudo rm -f /swapfile || true
           sudo dd if=/dev/zero of=/swapfile bs=1M count=8192
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
@@ -43,9 +48,18 @@ jobs:
           echo "storeFile=drugshop-key.jks" >> android/key.properties
 
       - run: flutter pub get
-      - run: flutter build apk --release
+      - run: flutter build apk --release --verbose
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: build/
