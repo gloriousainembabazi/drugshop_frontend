@@ -23,7 +23,8 @@ jobs:
 
       - name: Check runner resources
         run: free -h && nproc
-        - name: Add swap space
+
+      - name: Add swap space
         run: |
           sudo fallocate -l 8G /swapfile
           sudo chmod 600 /swapfile
